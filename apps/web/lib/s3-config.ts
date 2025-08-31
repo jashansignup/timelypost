@@ -3,7 +3,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import { redis } from "./db";
 import slugify from "slugify";
-import { S3_ALLOWED_CONTENT_TYPES, S3_ALLOWED_EXTENSIONS } from "./constants";
+import {
+  S3_ALLOWED_CONTENT_TYPES,
+  S3_ALLOWED_EXTENSIONS,
+  S3_BUCKET_ENDPOINT,
+} from "./constants";
 import { MediaType } from "@repo/database";
 
 // S3 client of the amazon s3 storage don't use this directly to upload the files always use the pre-signed url
@@ -63,7 +67,7 @@ export const generatePreSignedUrlS3 = async ({
       url,
       name: fileName,
       pathKey,
-      publicUrl: `${path}/${uniqueFileName}`,
+      publicUrl: `${S3_BUCKET_ENDPOINT}/${path}/${uniqueFileName}`,
       type,
       size,
     })

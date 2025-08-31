@@ -20,7 +20,6 @@ import { Media } from "@repo/database";
 import { getPresignedUrl } from "@/app/actions/get-presigned-url";
 import { Progress } from "@repo/ui/components/progress";
 import { addMediaToUser } from "@/app/actions/media";
-import { S3_BUCKET_ENDPOINT } from "@/lib/constants";
 
 const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
   const router = useRouter();
@@ -258,7 +257,7 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={S3_BUCKET_ENDPOINT + item.url}
+                      src={item.url}
                       alt={item.url}
                       className="w-full h-48 object-contain rounded-t-lg"
                     />
@@ -297,8 +296,13 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
                       {item.name}
                     </h3>
                     <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                      <span>{item.size}</span>
-                      <span>{item.createdAt.toISOString()}</span>
+                      <span>
+                        {Number(item.size) / (1024 * 1024) < 1
+                          ? (Number(item.size) / 1024).toFixed(2) + " KB"
+                          : (Number(item.size) / (1024 * 1024)).toFixed(2) +
+                            " MB"}
+                      </span>
+                      <span>{item.createdAt.toLocaleString()}</span>
                     </div>
                   </div>
                 </CardContent>

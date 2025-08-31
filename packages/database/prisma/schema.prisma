@@ -19,6 +19,7 @@ model User {
   ApiKey         ApiKey[]
   Media          Media[]
   SocialAccounts SocialAccount[]
+  Post           Post[]
 }
 
 model ApiKey {
@@ -79,16 +80,18 @@ enum SocialAccountType {
 }
 
 model Post {
-  id            String          @id @default(cuid())
-  text          String
-  media         Media[]
-  socialAccount SocialAccount[]
+  id     String  @id @default(cuid())
+  text   String
+  media  Media[]
+  userId String
 
-  scheduledAt DateTime @default(now())
-  postedAt    DateTime @default(now())
-  posted      Boolean  @default(false)
-  draft       Boolean  @default(false)
+  socialAccount SocialAccount[]
+  scheduledAt   DateTime        @default(now())
+  postedAt      DateTime        @default(now())
+  posted        Boolean         @default(false)
+  draft         Boolean         @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }

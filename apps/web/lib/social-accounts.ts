@@ -8,7 +8,7 @@ import {
   Youtube,
 } from "lucide-react";
 
-const allSocialAccounts: {
+export const allSocialAccounts: {
   name: string;
   icon: LucideIcon;
   type: SocialAccountType;

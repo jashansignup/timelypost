@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { ServerActionResponse } from "../types/server-action-response";
 import { db, redis } from "@/lib/db";
-import { MediaType } from "@repo/database";
+import { Media, MediaType } from "@repo/database";
 
 export const addMediaToUser = async ({
   mediaId,
@@ -46,5 +46,28 @@ export const addMediaToUser = async ({
     data: {
       id: mediaId,
     },
+  };
+};
+
+export const listMyMedia = async (): Promise<
+  ServerActionResponse<Media[]>
+> => {
+  const session = await auth();
+  if (!session?.user) {
+    return {
+      ok: false,
+      error: "Unauthorized",
+      description: "You are not authorized to perform this action",
+    };
+  }
+
+  const mediaItems = await db.media.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    ok: true,
+    data: mediaItems as unknown as Media[],
   };
 };
