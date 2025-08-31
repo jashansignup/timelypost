@@ -1,0 +1,17 @@
+"use client";
+import { SidebarProvider } from "@repo/ui/components/sidebar";
+import React from "react";
+import DashboardSidebar from "@/components/dashboard-sidebar";
+
+const layout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div>
+      <SidebarProvider>
+        <DashboardSidebar />
+        <div className="grid w-full md:mt-12">{children}</div>
+      </SidebarProvider>
+    </div>
+  );
+};
+
+export default layout;

@@ -1,0 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+  // Disable its causing issues with the esm based project of nodejs 
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
