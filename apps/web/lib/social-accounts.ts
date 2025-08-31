@@ -1,3 +1,4 @@
+import { SocialAccountType } from "@repo/database";
 import {
   Facebook,
   Instagram,
@@ -10,11 +11,13 @@ import {
 const allSocialAccounts: {
   name: string;
   icon: LucideIcon;
+  type: SocialAccountType;
   enabled: boolean;
 }[] = [
   {
     name: "X",
     icon: Twitter,
+    type: "X",
     enabled: process.env.NEXT_PUBLIC_X_ENABLED === "true",
   },
   // {

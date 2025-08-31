@@ -32,9 +32,6 @@ export async function GET(req: NextRequest) {
     screenName,
     userId,
   } = await client.login(oauth_verifier);
-  console.log("User tokens:", accessToken, accessSecret);
-
-  console.log(screenName);
 
   const user = await db.user.findUnique({
     where: {
@@ -44,6 +41,13 @@ export async function GET(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+  const profilePicture = await loggedClient.v2.user(userId);
+  if (!profilePicture || !profilePicture.data.profile_image_url) {
+    return NextResponse.json(
+      { error: "Profile picture not found" },
+      { status: 404 }
+    );
+  }
   await db.socialAccount.create({
     data: {
       userId: user.id,
@@ -51,6 +55,7 @@ export async function GET(req: NextRequest) {
       username: screenName,
       accessToken,
       accessSecret,
+      profilePicture: profilePicture.data.profile_image_url!,
     },
   });
 

@@ -14,8 +14,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@repo/ui/components/popover";
+import { SocialAccount } from "@repo/database";
 
-const ClientView = () => {
+const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   return (
@@ -23,9 +24,14 @@ const ClientView = () => {
       <h1 className="text-2xl font-bold">Create Post</h1>
       <div className="mt-6 md:w-[48rem] ">
         <div className="mb-3 flex items-center gap-2">
-          <button className="rounded-full p-3 border border-border h-8 w-8 flex items-center justify-center">
-            <span>X</span>
-          </button>
+          {accounts.map((account) => (
+            <button
+              key={account.id}
+              className="border flex items-center justify-center p-2"
+            >
+              <img src={account.profilePicture} alt={account.username} />
+            </button>
+          ))}
           <button className="rounded-full p-3 border border-border h-8 w-8 flex items-center justify-center">
             <span>+</span>
           </button>

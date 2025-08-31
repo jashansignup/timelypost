@@ -21,8 +21,9 @@ import {
 import { Badge } from "@repo/ui/components/badge";
 import { Plus, Trash2, Instagram, X, LucideIcon } from "lucide-react";
 import { socialAccounts } from "@/lib/social-accounts";
-import { connectAccount } from "@/app/actions/social-accounts";
-import { SocialAccount } from "@repo/database";
+import { connectAccount, deleteAccount } from "@/app/actions/social-accounts";
+import { SocialAccount, SocialAccountType } from "@repo/database";
+import { toast } from "sonner";
 
 const socialAccountIcons = (icon: SocialAccount): LucideIcon => {
   switch (icon.type) {
@@ -39,17 +40,15 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
   const [linkedAccounts, setLinkedAccounts] = useState(accounts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleConnectAccount = (platform: string) => {
-    // In a real app, this would handle OAuth flow
-    console.log(`[v0] Connecting to ${platform}`);
-    connectAccount();
+  const handleConnectAccount = (type: SocialAccountType) => {
+    connectAccount(type);
     setIsDialogOpen(false);
   };
 
-  const handleRemoveAccount = (accountId: string) => {
-    setLinkedAccounts((prev) =>
-      prev.filter((account) => account.id !== accountId)
-    );
+  const handleRemoveAccount = async (accountId: string) => {
+    const toastId = toast.loading("Removing account...");
+    await deleteAccount(accountId);
+    toast.success("Account removed successfully", { id: toastId });
   };
 
   return (
@@ -88,7 +87,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
                         key={platform.name}
                         variant="outline"
                         className="w-full justify-start h-auto p-4 bg-transparent"
-                        onClick={() => handleConnectAccount(platform.name)}
+                        onClick={() => handleConnectAccount(platform.type)}
                       >
                         <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                           <Icon className="w-5 h-5" />

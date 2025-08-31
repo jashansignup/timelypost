@@ -2,8 +2,14 @@ import { signIn } from "@/lib/auth";
 import { Button } from "@repo/ui/components/button";
 import { Card } from "@repo/ui/components/card";
 import React from "react";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-const page = () => {
+const page = async () => {
+  const session = await auth();
+  if (session?.user) {
+    return redirect("/dashboard");
+  }
   return (
     <div className="min-h-screen items-center justify-center flex">
       <Card className="md:min-w-[24rem] p-6">

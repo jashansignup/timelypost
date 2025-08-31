@@ -1,10 +1,15 @@
 "use client";
-import { Session } from "next-auth";
+import MainCommandBox from "@/components/main-command-box";
 import { SessionProvider } from "next-auth/react";
 import React from "react";
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider>
+      <MainCommandBox />
+      {children}
+    </SessionProvider>
+  );
 };
 
 export default Provider;
