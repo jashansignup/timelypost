@@ -6,8 +6,10 @@ export const createPostSchema = z.object({
   accountIds: z.array(z.string()).min(1, {
     message: "At least one account is required",
   }),
-  scheduledAt: z.date().refine((date) => date >= new Date(), {
-    message: "Scheduled date must be at least 1 minute from now",
-  }),
+  scheduledAt: z
+    .date()
+    .refine((date) => new Date(date) >= new Date(Date.now() + 60000), {
+      message: "Scheduled date must be at least 1 minute from now",
+    }),
   isScheduled: z.boolean(),
 });

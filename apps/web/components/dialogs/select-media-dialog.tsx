@@ -15,13 +15,13 @@ import { listMyMedia } from "@/app/actions/media";
 import type { Media } from "@repo/database";
 
 type SelectMediaDialogProps = {
-  onSelectUrls: (urls: string[]) => void;
+  onSelectMedia: (media: Media[]) => void;
   trigger?: React.ReactNode;
   multiple?: boolean;
 };
 
 const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
-  onSelectUrls,
+  onSelectMedia,
   trigger,
   multiple = true,
 }) => {
@@ -29,7 +29,6 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState<Media[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
   useEffect(() => {
     if (!open) return;
     let active = true;
@@ -58,8 +57,7 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
   };
 
   const confirm = () => {
-    const urls = media.filter((m) => selectedIds.has(m.id)).map((m) => m.url);
-    onSelectUrls(urls);
+    onSelectMedia(media.filter((m) => selectedIds.has(m.id)));
     setOpen(false);
     setSelectedIds(new Set());
   };
@@ -67,9 +65,7 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline">Add Media</Button>
-        )}
+        {trigger ?? <Button variant="outline">Add Media</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
@@ -120,7 +116,10 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
                           </div>
                         )}
                       </div>
-                      <div className="px-2 py-1 text-xs truncate" title={m.name}>
+                      <div
+                        className="px-2 py-1 text-xs truncate"
+                        title={m.name}
+                      >
                         {m.name}
                       </div>
                     </CardContent>

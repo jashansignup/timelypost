@@ -6,6 +6,8 @@ import { Badge } from "@repo/ui/components/badge";
 import { Post, SocialAccount, SocialAccountType } from "@repo/database";
 import { Calendar, Clock, Trash2 } from "lucide-react";
 import { Twitter, Instagram, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { deletePost } from "@/app/actions/post";
 
 const getIcon = (type: SocialAccountType) => {
   switch (type) {
@@ -23,9 +25,16 @@ const ClientView = ({
 }: {
   posts: (Post & { socialAccount: SocialAccount[] })[];
 }) => {
-  const handleDeletePost = (postId: string) => {};
-
-  const handleEditPost = () => {};
+  const handleDeletePost = async (postId: string) => {
+    const toastId = toast.loading("Deleting post...");
+    const res = await deletePost(postId);
+    if (!res.ok) {
+      toast.error(res.error, { description: res.description, id: toastId });
+      return;
+    } else {
+      toast.success("Post deleted successfully", { id: toastId });
+    }
+  };
 
   const handleSaveEdit = () => {};
 
@@ -85,9 +94,10 @@ const ClientView = ({
                       </Badge>
                     </div>
 
-                    <p className="text-gray-800 mb-4 leading-relaxed">
-                      {post.text}
-                    </p>
+                    <div
+                      className="text-gray-800 mb-4 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: post.text }}
+                    ></div>
 
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">Posting to:</span>

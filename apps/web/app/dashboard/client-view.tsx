@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@repo/ui/components/popover";
-import { SocialAccount, SocialAccountType } from "@repo/database";
+import { Media, SocialAccount, SocialAccountType } from "@repo/database";
 import { cn } from "@repo/ui/lib/utils";
 import SelectMediaDialog from "@/components/dialogs/select-media-dialog";
 import { createPost } from "../actions/create-post";
@@ -53,7 +53,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
   const [date, setDate] = React.useState<Date | undefined>(() => getTomorrow());
   const [time, setTime] = React.useState<string>(() => getNext5MinString());
   const [text, setText] = useState("");
-  const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<Media[]>([]);
   const [errors, setErrors] = useState<{
     text?: string;
     accountIds?: string;
@@ -74,7 +74,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     // Client-side validation using zod
     const candidate = {
       text,
-      mediaIds: selectedMedia,
+      mediaIds: selectedMedia.map((m) => m.id),
       accountIds: selectedAccounts.map((a) => a.id),
       scheduledAt: buildScheduledAt(isScheduled),
       isScheduled,
@@ -146,17 +146,19 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
         )}
         {selectedMedia.length > 0 && (
           <div className="flex gap-2 flex-wrap my-3">
-            {selectedMedia.map((url) => (
-              <div key={url} className="relative">
+            {selectedMedia.map((media) => (
+              <div key={media.id} className="relative">
                 <img
-                  src={url}
+                  src={media.url}
                   alt="selected"
                   className="w-24 h-24 object-contain rounded border"
                 />
                 <button
                   className="absolute top-[-10px] right-[-10px] bg-red-500 text-white p-1 rounded-full"
                   onClick={() =>
-                    setSelectedMedia((prev) => prev.filter((u) => u !== url))
+                    setSelectedMedia((prev) =>
+                      prev.filter((m) => m.id !== media.id)
+                    )
                   }
                 >
                   <X className="w-4 h-4" />
@@ -184,9 +186,9 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
 
         <div className="mt-6 flex md:flex-row flex-col justify-between gap-4">
           <SelectMediaDialog
-            onSelectUrls={(urls) =>
+            onSelectMedia={(media: Media[]) =>
               setSelectedMedia((prev) =>
-                Array.from(new Set([...prev, ...urls]))
+                Array.from(new Set([...prev, ...media]))
               )
             }
             trigger={

@@ -5,6 +5,15 @@ import { createPostSchema } from "@/zod-schemas/create-post-schema";
 import { ServerActionResponse } from "../types/server-action-response";
 import { Post } from "@repo/database";
 import { auth } from "@/lib/auth";
+import { quillHtmlToUnicode } from "@/lib/unicode-converter";
+import { Queue } from "bullmq";
+import { redis } from "@/lib/db";
+
+const postQueue = new Queue("post-queue", {
+  connection: {
+    url: process.env.VALKEY_URL!,
+  },
+});
 
 export const createPost = async (
   data: unknown
@@ -55,19 +64,40 @@ export const createPost = async (
     data: {
       userId: session.user.id!,
       text: validatedData.text,
-      scheduledAt: validatedData.scheduledAt,
+      scheduledAt: validatedData.isScheduled
+        ? validatedData.scheduledAt
+        : new Date(),
+      // TODO: fix the media make sure media belongs to user
       media: {
         connect: validatedData.mediaIds.map((mediaId) => ({
           id: mediaId,
         })),
       },
       socialAccount: {
-        connect: validAccountIds.map((account) => ({
-          id: account.id,
+        connect: validatedData.accountIds.map((accountId) => ({
+          id: accountId,
         })),
       },
     },
   });
+
+  if (
+    !validatedData.isScheduled ||
+    validatedData.scheduledAt.getTime() < new Date().getTime() + 60 * 1000
+  ) {
+    const delay = post.scheduledAt.getTime() - Date.now();
+    await postQueue.add(
+      "post",
+      {
+        postId: post.id,
+      },
+      {
+        // delay: Math.max(delay, 0),
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    );
+  }
   return {
     ok: true,
     data: post,
