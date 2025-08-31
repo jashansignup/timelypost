@@ -11,6 +11,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { useSession } from "next-auth/react";
 
 const navigation = [
   { name: "Create Post", href: "/dashboard", icon: PlusCircle },
@@ -23,6 +24,7 @@ const navigation = [
 ];
 const DashboardSidebar = () => {
   const pathname = usePathname();
+  const session = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <>
@@ -93,14 +95,16 @@ const DashboardSidebar = () => {
           <div className="px-4 py-4 border-t border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">JD</span>
+                <span className="text-sm font-medium text-foreground">
+                  {session?.data?.user?.name?.split(" ")[0][0]}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
-                  John Doe
+                  {session?.data?.user?.name}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  john@example.com
+                  {session?.data?.user?.email}
                 </p>
               </div>
             </div>

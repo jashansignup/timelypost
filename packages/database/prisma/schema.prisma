@@ -63,7 +63,7 @@ model SocialAccount {
   username       String
   profilePicture String?
   accessToken    String
-  refreshToken   String?
+  accessSecret   String?
   error          String?
   paused         Boolean @default(false)
 

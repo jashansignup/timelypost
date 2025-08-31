@@ -2,8 +2,14 @@ import React from "react";
 import { Button } from "@repo/ui/components/button";
 import { ArrowRight } from "lucide-react";
 import { Calendar, BarChart3, Users } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-const page = () => {
+const page = async () => {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
   return (
     <div className="container">
       <section className="py-20 px-4 text-center">
