@@ -8,21 +8,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/api/instant-add", async (req, res) => {
-  const postId = req.body.postId;
-
-  await postQueue.add(
-    "post-queue",
-    { postId },
-    {
-      delay: 0,
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  );
-  res.status(200).json({ message: "Posts added to queue" });
-});
-
 async function getPostsUnder1hour() {
   const posts = await db.post.findMany({
     where: {
