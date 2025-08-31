@@ -61,7 +61,7 @@ model SocialAccount {
   type   SocialAccountType
 
   username       String
-  profilePicture String
+  profilePicture String?
   accessToken    String
   accessSecret   String?
   error          String?

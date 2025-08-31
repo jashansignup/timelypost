@@ -2,9 +2,9 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { Card } from "@repo/ui/components/card";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { Image } from "lucide-react";
+import { Image, Instagram, Plus, Twitter } from "lucide-react";
 
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@repo/ui/components/calendar";
@@ -14,9 +14,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@repo/ui/components/popover";
-import { SocialAccount } from "@repo/database";
+import { SocialAccount, SocialAccountType } from "@repo/database";
+import { cn } from "@repo/ui/lib/utils";
+
+const getIcon = (type: SocialAccountType) => {
+  switch (type) {
+    case "X":
+      return <Twitter />;
+    case "INSTAGRAM":
+      return <Instagram />;
+    default:
+      return <Plus />;
+  }
+};
 
 const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
+  const [selectedAccounts, setSelectedAccounts] = useState<SocialAccount[]>([]);
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   return (
@@ -27,14 +40,23 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
           {accounts.map((account) => (
             <button
               key={account.id}
-              className="border flex items-center justify-center p-2"
+              className={cn(
+                ` flex-col gap-2 flex items-center justify-center p-2 rounded-md border-2 bg-muted hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${selectedAccounts.includes(account) ? "border-primary text-primary" : ""}`
+              )}
+              onClick={() => {
+                setSelectedAccounts((prev) => {
+                  if (prev.includes(account)) {
+                    return prev.filter((a) => a.id !== account.id);
+                  } else {
+                    return [...prev, account];
+                  }
+                });
+              }}
             >
-              <img src={account.profilePicture} alt={account.username} />
+              {getIcon(account.type)}
+              <span className="text-xs">@{account.username}</span>
             </button>
           ))}
-          <button className="rounded-full p-3 border border-border h-8 w-8 flex items-center justify-center">
-            <span>+</span>
-          </button>
         </div>
         <div className="h-[130px] relative">
           <ReactQuill
