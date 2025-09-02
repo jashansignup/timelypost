@@ -110,6 +110,9 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
       toast.error(res.error, { description: res.description, id: toastId });
       return;
     } else {
+      setSelectedAccounts([]);
+      setSelectedMedia([]);
+      setText("");
       toast.success("Post created successfully", { id: toastId });
     }
   };
@@ -148,6 +151,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
           <div className="flex gap-2 flex-wrap my-3">
             {selectedMedia.map((media) => (
               <div key={media.id} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={media.url}
                   alt="selected"

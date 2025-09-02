@@ -1,3 +1,5 @@
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
+
 const validUploadPathKeys = ["media"];
 export const S3_BUCKET_ENDPOINT = process.env.NEXT_PUBLIC_S3_BUCKET_ENDPOINT!;
 const uploadPathConfig: {

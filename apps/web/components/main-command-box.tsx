@@ -6,18 +6,28 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@repo/ui/components/command";
-import { Bell, Bookmark, Clock, LucideIcon, User } from "lucide-react";
+import {
+  LucideIcon,
+  PlusCircle,
+  ImageIcon,
+  Code,
+  Calendar,
+  Users,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-const navigationLinks = [
-  { label: "Create Post", href: "/dashboard" },
-  { label: "Accounts", href: "/dashboard/accounts" },
-  { label: "Media", href: "/dashboard/media" },
-  { label: "API", href: "/dashboard/api" },
-  { label: "Scheduled Posts", href: "/dashboard/scheduled" },
+const navigationLinks: {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}[] = [
+  { label: "Create Post", href: "/dashboard", icon: PlusCircle },
+  { label: "Accounts", href: "/dashboard/accounts", icon: Users },
+  { label: "Media", href: "/dashboard/media", icon: ImageIcon },
+  { label: "API", href: "/dashboard/api", icon: Code },
+  { label: "Scheduled Posts", href: "/dashboard/scheduled", icon: Calendar },
 ];
 
 const MainCommandBox = () => {
@@ -49,6 +59,7 @@ const MainCommandBox = () => {
                 setOpen(false);
               }}
             >
+              <link.icon />
               {link.label}
             </CommandItem>
           ))}

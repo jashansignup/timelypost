@@ -13,6 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.879.0",
     "@repo/database": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@upstash/qstash": "^2.8.2",
     "axios": "^1.11.0",
     "bullmq": "^5.58.4",
     "iovalkey": "^0.3.3",
