@@ -1,0 +1,26 @@
+{
+  "name": "lambda-functions",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc-watch --onSuccess  \"node dist/index.js\"",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "prisma": "^6.15.0",
+    "tsc-watch": "^7.1.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.2",
+    "jsdom": "^26.1.0",
+    "twitter-api-v2": "^1.25.0"
+  }
+}
