@@ -11,6 +11,9 @@ export default async function page() {
     where: {
       userId: session.user.id,
     },
+    orderBy: {
+      scheduledAt: "desc",
+    },
     include: {
       socialAccount: true,
     },

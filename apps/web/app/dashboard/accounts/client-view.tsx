@@ -19,9 +19,20 @@ import {
   DialogTrigger,
 } from "@repo/ui/components/dialog";
 import { Badge } from "@repo/ui/components/badge";
-import { Plus, Trash2, Instagram, X, LucideIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Instagram,
+  X,
+  LucideIcon,
+  RefreshCcw,
+} from "lucide-react";
 import { socialAccounts } from "@/lib/social-accounts";
-import { connectAccount, deleteAccount } from "@/app/actions/social-accounts";
+import {
+  connectAccount,
+  deleteAccount,
+  updateAccount,
+} from "@/app/actions/social-accounts";
 import { SocialAccount, SocialAccountType } from "@repo/database";
 import { toast } from "sonner";
 
@@ -51,6 +62,11 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     toast.success("Account removed successfully", { id: toastId });
   };
 
+  const handleUpdateAccount = async (accountId: string) => {
+    const toastId = toast.loading("Updating account...");
+    await updateAccount(accountId);
+    toast.success("Account updated successfully", { id: toastId });
+  };
   return (
     <div className="container ">
       <div className="mb-8">
@@ -147,8 +163,13 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h3 className="font-medium text-foreground">
+                          <h3 className="font-medium text-foreground flex items-center gap-2">
                             {account.type}
+                            <button
+                              onClick={() => handleUpdateAccount(account.id)}
+                            >
+                              <RefreshCcw className="w-4 h-4" />
+                            </button>
                           </h3>
                         </div>
                         <p className="text-sm text-muted-foreground">

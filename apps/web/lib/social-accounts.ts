@@ -30,11 +30,12 @@ export const allSocialAccounts: {
   //   icon: Instagram,
   //   enabled: process.env.NEXT_PUBLIC_INSTAGRAM_ENABLED === "true",
   // },
-  // {
-  //   name: "LinkedIn",
-  //   icon: Linkedin,
-  //   enabled: process.env.NEXT_PUBLIC_LINKEDIN_ENABLED === "true",
-  // },
+  {
+    name: "LinkedIn",
+    icon: Linkedin,
+    type: "LINKEDIN",
+    enabled: process.env.NEXT_PUBLIC_LINKEDIN_ENABLED === "true",
+  },
   // {
   //   name: "YouTube",
   //   icon: Youtube,

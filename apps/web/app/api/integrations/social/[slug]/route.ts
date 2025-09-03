@@ -1,56 +1,26 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { SocialAccountType } from "@repo/database";
 import { redirect } from "next/navigation";
-import { NextRequest, NextResponse } from "next/server";
-import TwitterApi from "twitter-api-v2";
+import { XAuth } from "./auth-functions/x-auth";
+import { LinkedInAuth } from "./auth-functions/linkedin-auth";
+import { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   const session = await auth();
+  const slug = (await params).slug;
+
   if (!session?.user) {
     redirect("/login");
   }
-  const { searchParams } = new URL(req.url);
-  const oauth_token = searchParams.get("oauth_token");
-  const oauth_verifier = searchParams.get("oauth_verifier");
-  const oauth_token_secret = req.cookies.get("oauth_token_secret")?.value;
 
-  if (!oauth_token || !oauth_verifier || !oauth_token_secret) {
-    return NextResponse.json({ error: "Missing params" }, { status: 400 });
+  if (slug === "x") {
+    return XAuth(req, session);
   }
-
-  const client = new TwitterApi({
-    appKey: process.env.X_API_KEY!,
-    appSecret: process.env.X_API_SECRET!,
-    accessToken: oauth_token,
-    accessSecret: oauth_token_secret,
-  });
-  const {
-    client: loggedClient,
-    accessToken,
-    accessSecret,
-    screenName,
-    userId,
-  } = await client.login(oauth_verifier);
-
-  const user = await db.user.findUnique({
-    where: {
-      email: session.user.email!,
-    },
-  });
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (slug === "linkedin") {
+    return LinkedInAuth(req, session);
   }
-
-  await db.socialAccount.create({
-    data: {
-      userId: user.id,
-      type: SocialAccountType.X,
-      username: screenName,
-      accessToken,
-      accessSecret,
-    },
-  });
 
   return redirect("/dashboard/accounts");
 }

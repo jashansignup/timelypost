@@ -7,20 +7,18 @@ import {
   Calendar,
   Users,
   Code,
-  Settings,
   ImageIcon,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const navigation = [
   { name: "Create Post", href: "/dashboard", icon: PlusCircle },
   { name: "Scheduled Posts", href: "/dashboard/scheduled", icon: Calendar },
   { name: "Accounts", href: "/dashboard/accounts", icon: Users },
   { name: "Media", href: "/dashboard/media", icon: ImageIcon },
-  //   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { name: "API", href: "/dashboard/api", icon: Code },
-  // { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 const DashboardSidebar = () => {
   const pathname = usePathname();
@@ -89,6 +87,15 @@ const DashboardSidebar = () => {
                 </Link>
               );
             })}
+            <button
+              className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:bg-accent/50 hover:text-foreground w-full"
+              )}
+              onClick={() => signOut()}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </button>
           </nav>
 
           {/* User section */}

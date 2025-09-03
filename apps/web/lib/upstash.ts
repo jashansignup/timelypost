@@ -1,19 +1,17 @@
 import { Client } from "@upstash/qstash";
-import { BASE_URL } from "./constants";
 
 const qstashClient = new Client();
 
-export async function schedulePost(postId: string) {
-  const res = await qstashClient.publish({
-    url: `${BASE_URL}/api/test`,
+export async function schedulePost(postId: string, scheduledAt: Date) {
+  await qstashClient.publish({
+    url: `${process.env.AWS_LAMBDA_ENDPOINT}`,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.PERSONAL_API_KEY}`,
     },
     body: JSON.stringify({
       postId,
+      secret: process.env.AWS_LAMBDA_SECRET!,
     }),
-    notBefore: 1000,
+    notBefore: scheduledAt.getTime() - Date.now(),
   });
-  console.log(res);
 }

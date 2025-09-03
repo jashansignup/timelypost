@@ -1,13 +1,29 @@
-import { db } from "./db.js";
+import { db } from "./db";
 import dotenv from "dotenv";
-import { quillHtmlToUnicode } from "./unicode-converter.js";
-import { postOnX } from "./post-functions/post-on-x.js";
+import { quillHtmlToUnicode } from "./unicode-converter";
+import { postOnX } from "./post-functions/post-on-x";
 dotenv.config();
 
-interface handlerProps {
-  postId: string;
-}
-export async function handler({ postId }: handlerProps) {
+export async function handler(event: any): Promise<{
+  status: "ok" | "error";
+  message?: string;
+}> {
+  let body;
+  try {
+    body = JSON.parse(event.body || "{}");
+  } catch {
+    return { status: "error", message: JSON.stringify(event) };
+  }
+
+  if (body.secret !== process.env.API_SECRET) {
+    return { status: "error", message: JSON.stringify(event) };
+  }
+
+  const postId = body.postId;
+  if (!postId) {
+    return { status: "error", message: "Missing postId" };
+  }
+
   const post = await db.post.findUnique({
     where: {
       id: postId,
@@ -19,12 +35,18 @@ export async function handler({ postId }: handlerProps) {
   });
 
   if (!post) {
-    return;
+    return {
+      status: "error",
+      message: "Post not found",
+    };
   }
   const diff = Math.abs(post.scheduledAt.getTime() - new Date().getTime());
   // if diff is more then the 5min the return
-  if (diff > 60 * 1000) {
-    return;
+  if (diff > 5 * 60 * 1000) {
+    return {
+      status: "error",
+      message: "Post is not scheduled yet",
+    };
   }
 
   const safeText = quillHtmlToUnicode(post.text);
@@ -44,5 +66,8 @@ export async function handler({ postId }: handlerProps) {
     },
   });
 
-  return;
+  return {
+    status: "ok",
+    message: "Post posted successfully",
+  };
 }
