@@ -67,7 +67,7 @@ export const generatePreSignedUrlS3 = async ({
       url,
       name: fileName,
       pathKey,
-      publicUrl: `${S3_BUCKET_ENDPOINT}/${path}/${uniqueFileName}`,
+      publicUrl: `${S3_BUCKET_ENDPOINT}${path}/${uniqueFileName}`,
       type,
       size,
     })

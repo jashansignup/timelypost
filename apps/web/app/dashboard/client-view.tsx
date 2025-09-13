@@ -1,10 +1,16 @@
 "use client";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { Card } from "@repo/ui/components/card";
 import React, { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { Image, Instagram, Plus, Twitter, X } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Instagram,
+  Linkedin,
+  Plus,
+  Twitter,
+  X,
+} from "lucide-react";
 
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@repo/ui/components/calendar";
@@ -27,6 +33,8 @@ const getIcon = (type: SocialAccountType) => {
       return <Twitter />;
     case "INSTAGRAM":
       return <Instagram />;
+    case "LINKEDIN":
+      return <Linkedin />;
     default:
       return <Plus />;
   }
@@ -197,7 +205,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
             }
             trigger={
               <Button variant="outline">
-                <Image className="mr-2 h-4 w-4" /> Add Media
+                <ImageIcon className="mr-2 h-4 w-4" /> Add Media
               </Button>
             }
           />

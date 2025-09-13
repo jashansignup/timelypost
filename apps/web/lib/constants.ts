@@ -13,7 +13,7 @@ const uploadPathConfig: {
   {
     name: "media",
     function: () => ({
-      path: "meida",
+      path: "media",
       maxSizeBytes: 100 * 1024 * 1024, // 100MB
       allowedMimeTypes: ["image/png", "image/jpeg", "video/mp4"] as const,
     }),

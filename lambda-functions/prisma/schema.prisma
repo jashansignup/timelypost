@@ -1,7 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // Disable its causing issues with the esm based project of nodejs 
-  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -10,30 +8,27 @@ datasource db {
 }
 
 model User {
-  id    String @id @default(cuid())
-  name  String
-  email String @unique
-
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   ApiKey         ApiKey[]
   Media          Media[]
-  SocialAccounts SocialAccount[]
   Post           Post[]
+  SocialAccounts SocialAccount[]
 }
 
 model ApiKey {
-  id          String  @id @default(cuid())
-  KeyId       String  @unique
-  Key         String  @unique
+  id          String   @id @default(cuid())
+  KeyId       String   @unique
+  Key         String   @unique
   name        String
   description String?
   userId      String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Media {
@@ -44,9 +39,79 @@ model Media {
   name      String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  user      User      @relation(fields: [userId], references: [id])
   userId    String
-  Post      Post[]
+  user      User      @relation(fields: [userId], references: [id])
+  Post      Post[]    @relation("MediaToPost")
+}
+
+model SocialAccount {
+  id             String            @id @default(cuid())
+  userId         String
+  type           SocialAccountType
+  username       String
+  profilePicture String?
+
+  error  String?
+  paused Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id])
+  posts Post[] @relation("PostToSocialAccount")
+
+  XAccount        XAccount?
+  LinkedInAccount LinkedInAccount?
+}
+
+model LinkedInAccount {
+  id String @id @default(uuid())
+
+  // Creds or details needed for the posting 
+  accessToken     String
+  refreshToken    String?
+  uuid            String
+  lastRefreshedAt DateTime
+
+  socialAccountId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+}
+
+model XAccount {
+  id String @id @default(uuid())
+
+  // Creds or details needed for the posting 
+  accessToken       String
+  accessSecretToken String
+
+  socialAccountId String @unique
+
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+
+  lastRefreshedAt DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Post {
+  id            String          @id @default(cuid())
+  text          String
+  userId        String
+  scheduledAt   DateTime        @default(now())
+  postedAt      DateTime        @default(now())
+  posted        Boolean         @default(false)
+  draft         Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  error         String?
+  failed        Boolean         @default(false)
+  user          User            @relation(fields: [userId], references: [id])
+  media         Media[]         @relation("MediaToPost")
+  socialAccount SocialAccount[] @relation("PostToSocialAccount")
 }
 
 enum MediaType {
@@ -54,43 +119,8 @@ enum MediaType {
   VIDEO
 }
 
-model SocialAccount {
-  id     String            @id @default(cuid())
-  user   User              @relation(fields: [userId], references: [id])
-  userId String
-  type   SocialAccountType
-
-  username       String
-  profilePicture String?
-  accessToken    String
-  accessSecret   String
-  error          String?
-  paused         Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  // Many-to-many with Post (implicit join table)
-  posts     Post[]
-}
-
 enum SocialAccountType {
   INSTAGRAM
   X
-}
-
-model Post {
-  id     String  @id @default(cuid())
-  text   String
-  media  Media[]
-  userId String
-
-  socialAccount SocialAccount[]
-  scheduledAt   DateTime        @default(now())
-  postedAt      DateTime        @default(now())
-  posted        Boolean         @default(false)
-  draft         Boolean         @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  LINKEDIN
 }

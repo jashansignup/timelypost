@@ -29,7 +29,7 @@ export const connectAccount = async (type: SocialAccountType) => {
       response_type: "code",
       client_id: process.env.LINKEDIN_CLIENT_ID!,
       redirect_uri: `${BASE_URL}/api/integrations/social/linkedin`,
-      scope: "openid profile email w_member_social ",
+      scope: "openid profile email w_member_social r_basicprofile ",
       state: Math.random().toString(36).substring(2, 15),
     });
 
@@ -55,36 +55,37 @@ export const deleteAccount = async (id: string) => {
   return true;
 };
 
-export const updateAccount = async (id: string) => {
-  const session = await auth();
-  if (!session?.user) {
-    throw new Error("User not found");
-  }
-  const account = await db.socialAccount.findUnique({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  });
-  if (!account) {
-    throw new Error("Account not found");
-  }
-  if (account.type === "LINKEDIN") {
-    const profile = await axios.get("https://api.linkedin.com/v2/me", {
-      headers: {
-        Authorization: `Bearer ${account.accessToken}`,
-      },
-    });
-    console.log(profile.data);
-    await db.socialAccount.update({
-      where: {
-        id,
-        userId: session.user.id,
-      },
-      data: {
-        username: profile.data.localizedFirstName,
-      },
-    });
-  }
-  return true;
-};
+// export const updateAccount = async (id: string) => {
+//   const session = await auth();
+//   if (!session?.user) {
+//     throw new Error("User not found");
+//   }
+//   const account = await db.socialAccount.findUnique({
+//     where: {
+//       id,
+//       userId: session.user.id,
+//     },
+//   });
+//   if (!account) {
+//     throw new Error("Account not found");
+//   }
+//   if (account.type === "LINKEDIN") {
+//     const response = await axios.get("https://api.linkedin.com/v2/me", {
+//       headers: {
+//         Authorization: `Bearer ${account.accessToken}`,
+//       },
+//     });
+//     console.log(response.data);
+//     await db.socialAccount.update({
+//       where: {
+//         id,
+//         userId: session.user.id,
+//       },
+//       data: {
+//         username: response.data.vanityName,
+//       },
+//     });
+//     revalidatePath("/dashboard/accounts");
+//   }
+//   return true;
+// };

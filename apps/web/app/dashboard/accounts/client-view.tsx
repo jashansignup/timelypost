@@ -18,7 +18,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@repo/ui/components/dialog";
-import { Badge } from "@repo/ui/components/badge";
 import {
   Plus,
   Trash2,
@@ -31,7 +30,7 @@ import { socialAccounts } from "@/lib/social-accounts";
 import {
   connectAccount,
   deleteAccount,
-  updateAccount,
+  // updateAccount,
 } from "@/app/actions/social-accounts";
 import { SocialAccount, SocialAccountType } from "@repo/database";
 import { toast } from "sonner";
@@ -64,7 +63,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
 
   const handleUpdateAccount = async (accountId: string) => {
     const toastId = toast.loading("Updating account...");
-    await updateAccount(accountId);
+    // await updateAccount(accountId);
     toast.success("Account updated successfully", { id: toastId });
   };
   return (
