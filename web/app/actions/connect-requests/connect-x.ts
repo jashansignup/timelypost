@@ -2,6 +2,7 @@
 import TwitterApi from "twitter-api-v2";
 import { cookies } from "next/headers";
 import { ServerActionResponse } from "@/app/types/server-action-response";
+import { BASE_URL } from "@/lib/constants";
 
 const client = new TwitterApi({
   appKey: process.env.X_API_KEY!,
@@ -11,7 +12,7 @@ export const connectX = async (): Promise<
   ServerActionResponse<{ url: string }>
 > => {
   const response = await client.generateAuthLink(
-    "http://localhost:3000/api/integrations/social/x"
+    `${BASE_URL}/api/integrations/social/x`
   );
   const cookieStore = await cookies();
   cookieStore.set("oauth_token_secret", response.oauth_token_secret);
