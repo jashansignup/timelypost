@@ -32,7 +32,7 @@ export const postOnLinkedIn = async (
         },
         specificContent: {
           "com.linkedin.ugc.ShareContent": {
-            shareCommentary: { text: safeText },
+            shareCommentary: { text: post.text },
             shareMediaCategory: "NONE",
             shareCategorization: {},
           },
@@ -116,7 +116,7 @@ export const postOnLinkedIn = async (
       },
       specificContent: {
         "com.linkedin.ugc.ShareContent": {
-          shareCommentary: { text: safeText },
+          shareCommentary: { text: post.text },
           shareMediaCategory: "IMAGE",
           media: uploadedAssets.map((asset) => ({
             status: "READY",
