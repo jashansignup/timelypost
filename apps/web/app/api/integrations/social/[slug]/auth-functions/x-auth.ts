@@ -3,6 +3,7 @@ import { Session } from "next-auth";
 import { db } from "@/lib/db";
 import { SocialAccountType } from "@repo/database";
 import TwitterApi from "twitter-api-v2";
+import { redirect } from "next/navigation";
 
 export async function XAuth(req: NextRequest, session: Session) {
   if (!session.user) {
@@ -33,14 +34,22 @@ export async function XAuth(req: NextRequest, session: Session) {
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
-
-  await db.socialAccount.create({
-    data: {
-      userId: user.id,
-      type: SocialAccountType.X,
-      username: screenName,
-      accessToken,
-      accessSecret,
-    },
+  await db.$transaction(async (tx) => {
+    const socialAccount = await tx.socialAccount.create({
+      data: {
+        userId: user.id,
+        type: SocialAccountType.X,
+        username: screenName,
+      },
+    });
+    await tx.xAccount.create({
+      data: {
+        socialAccountId: socialAccount.id,
+        accessToken,
+        accessSecretToken: accessSecret,
+        lastRefreshedAt: new Date(),
+      },
+    });
   });
+  redirect("/dashboard/accounts");
 }

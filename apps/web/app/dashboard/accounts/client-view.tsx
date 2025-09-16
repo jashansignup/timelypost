@@ -18,40 +18,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@repo/ui/components/dialog";
-import {
-  Plus,
-  Trash2,
-  Instagram,
-  X,
-  LucideIcon,
-  RefreshCcw,
-} from "lucide-react";
+import { Plus, Trash2, X, LucideIcon, Linkedin } from "lucide-react";
 import { socialAccounts } from "@/lib/social-accounts";
 import {
   connectAccount,
   deleteAccount,
   // updateAccount,
-} from "@/app/actions/social-accounts";
+} from "@/app/actions/connect-requests";
 import { SocialAccount, SocialAccountType } from "@repo/database";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const socialAccountIcons = (icon: SocialAccount): LucideIcon => {
   switch (icon.type) {
     case "X":
       return X;
-    case "INSTAGRAM":
-      return Instagram;
+    case "LINKEDIN":
+      return Linkedin;
     default:
       return Plus;
   }
 };
 
 const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
-  const [linkedAccounts, setLinkedAccounts] = useState(accounts);
+  const router = useRouter();
+  const [linkedAccounts] = useState(accounts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleConnectAccount = (type: SocialAccountType) => {
-    connectAccount(type);
+  const handleConnectAccount = async (type: SocialAccountType) => {
+    const res = await connectAccount(type);
+    if (res.ok) {
+      router.push(res.data.url);
+    }
     setIsDialogOpen(false);
   };
 
@@ -61,11 +59,6 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     toast.success("Account removed successfully", { id: toastId });
   };
 
-  const handleUpdateAccount = async (accountId: string) => {
-    const toastId = toast.loading("Updating account...");
-    // await updateAccount(accountId);
-    toast.success("Account updated successfully", { id: toastId });
-  };
   return (
     <div className="container ">
       <div className="mb-8">
@@ -137,9 +130,6 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
         <CardContent>
           {linkedAccounts.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                <Plus className="w-8 h-8 text-gray-400" />
-              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 No accounts connected
               </h3>
@@ -164,11 +154,6 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
                         <div className="flex items-center space-x-2">
                           <h3 className="font-medium text-foreground flex items-center gap-2">
                             {account.type}
-                            <button
-                              onClick={() => handleUpdateAccount(account.id)}
-                            >
-                              <RefreshCcw className="w-4 h-4" />
-                            </button>
                           </h3>
                         </div>
                         <p className="text-sm text-muted-foreground">

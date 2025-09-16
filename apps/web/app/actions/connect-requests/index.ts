@@ -1,43 +1,35 @@
 "use server";
-
-import { redirect } from "next/navigation";
-import TwitterApi from "twitter-api-v2";
-import { cookies } from "next/headers";
 import { SocialAccountType } from "@repo/database";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { BASE_URL } from "@/lib/constants";
-import axios from "axios";
+import { connectX } from "./connect-x";
+import { connectLinkedin } from "./connect-linkedin";
+import { ServerActionResponse } from "@/app/types/server-action-response";
 
-const client = new TwitterApi({
-  appKey: process.env.X_API_KEY!,
-  appSecret: process.env.X_API_SECRET!,
-});
-export const connectAccount = async (type: SocialAccountType) => {
-  if (type === "X") {
-    console.log(`i am running x`);
-    const response = await client.generateAuthLink(
-      "http://localhost:3000/api/integrations/social/x"
-    );
-    const cookieStore = await cookies();
-    cookieStore.set("oauth_token_secret", response.oauth_token_secret);
-    redirect(response.url);
-  } else if (type === "LINKEDIN") {
-    console.log(`i am running linkedin`);
-    const params = new URLSearchParams({
-      response_type: "code",
-      client_id: process.env.LINKEDIN_CLIENT_ID!,
-      redirect_uri: `${BASE_URL}/api/integrations/social/linkedin`,
-      scope: "openid profile email w_member_social r_basicprofile ",
-      state: Math.random().toString(36).substring(2, 15),
-    });
-
-    const redirectUrl = `https://www.linkedin.com/oauth/v2/authorization?${params.toString()}`;
-
-    redirect(redirectUrl);
+export const connectAccount = async (
+  type: SocialAccountType
+): Promise<ServerActionResponse<{ url: string }>> => {
+  try {
+    if (type === "X") {
+      const res = connectX();
+      return res;
+    } else if (type === "LINKEDIN") {
+      const res = connectLinkedin();
+      return res;
+    }
+    return {
+      ok: false,
+      error: "Invalid account type",
+      description: "The account type is not allowed",
+    };
+  } catch {
+    return {
+      ok: false,
+      error: "Internal server error",
+      description: "An error occurred while connecting to the account",
+    };
   }
-  throw new Error("Invalid account type");
 };
 
 export const deleteAccount = async (id: string) => {

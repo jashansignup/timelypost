@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { ServerActionResponse } from "../types/server-action-response";
 import { generatePreSignedUrlS3 } from "@/lib/s3-config";
 import { getUploadPathConfig } from "@/lib/constants";
+import { getMediaTypeAndFormatFromRaw } from "@/lib/media-helper";
 
 export const getPresignedUrl = async ({
   name,
@@ -45,14 +46,22 @@ export const getPresignedUrl = async ({
         " MB.",
     };
   }
-
+  const mediaTypeAndFormat = getMediaTypeAndFormatFromRaw(contentType);
+  if (!mediaTypeAndFormat) {
+    return {
+      ok: false,
+      error: "Invalid content type",
+      description:
+        "The content type is not allowed. Allowed types are: " +
+        uploadConfig.allowedMimeTypes.join(", "),
+    };
+  }
   const res = await generatePreSignedUrlS3({
     path: uploadConfig.path,
     fileName: name,
     contentType,
     pathKey,
-    // TODO: fix it using the very vague type
-    type: contentType.includes("image") ? "IMAGE" : "VIDEO",
+    type: mediaTypeAndFormat.type,
     size,
   });
   return {

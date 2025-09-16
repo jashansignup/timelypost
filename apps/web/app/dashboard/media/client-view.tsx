@@ -29,6 +29,22 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
     { file: File; id: string; url: string; progress: number }[]
   >([]);
   const [isUploading, setIsUploading] = useState(false);
+  const getUploadTime = (uploadedAt: Date) => {
+    const diff = new Date().getTime() - uploadedAt.getTime();
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) {
+      return `${days} days ago`;
+    } else if (hours > 0) {
+      return `${hours} hours ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minutes ago`;
+    } else {
+      return `${seconds} seconds ago`;
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedFiles || selectedFiles.length === 0) return;
@@ -302,7 +318,9 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
                           : (Number(item.size) / (1024 * 1024)).toFixed(2) +
                             " MB"}
                       </span>
-                      <span>{item.createdAt.toLocaleString()}</span>
+                      <span className="text-xs">
+                        {getUploadTime(item.createdAt)}
+                      </span>
                     </div>
                   </div>
                 </CardContent>

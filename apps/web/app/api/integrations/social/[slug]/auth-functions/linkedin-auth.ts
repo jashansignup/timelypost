@@ -31,20 +31,32 @@ export const LinkedInAuth = async (req: NextRequest, session: Session) => {
       }
     );
 
-    // TODO: Fix the handling of hte error of hte refresh token
-    await db.socialAccount.create({
-      data: {
-        type: SocialAccountType.LINKEDIN,
-        userId: session.user.id!,
-        accessToken: res.data.access_token,
-        accessSecret: res.data.refresh || "not_available",
-        username: user?.name || "",
+    const response = await axios.get("https://api.linkedin.com/v2/me", {
+      headers: {
+        Authorization: `Bearer ${res.data.access_token}`,
       },
     });
+    await db.$transaction(async (tx) => {
+      const socialAccount = await tx.socialAccount.create({
+        data: {
+          type: SocialAccountType.LINKEDIN,
+          userId: session?.user?.id || " ",
+          username: response.data.vanityName || "linkedin_account",
+        },
+      });
+      await tx.linkedInAccount.create({
+        data: {
+          socialAccountId: socialAccount.id,
+          accessToken: res.data.access_token,
+          refreshToken: res.data.refresh_token,
+          uuid: response.data.id,
+          lastRefreshedAt: new Date(),
+        },
+      });
+    });
     return redirect("/dashboard/accounts");
-  } catch {
-    // TODO: fix this unable to connect accoutn error
-
+  } catch (e) {
+    console.log(e);
     return redirect("/dashboard/accounts");
   }
 };

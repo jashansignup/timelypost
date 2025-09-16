@@ -128,7 +128,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     <div className="container ">
       <h1 className="text-2xl font-bold">Create Post</h1>
       <div className="mt-6 md:w-[48rem] ">
-        <div className="mb-1 flex items-center gap-2">
+        <div className="mb-1 flex items-center gap-2 flex-wrap">
           {accounts.map((account) => (
             <button
               key={account.id}
@@ -148,7 +148,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
               }}
             >
               {getIcon(account.type)}
-              <span className="text-xs">@{account.username}</span>
+              <span className="text-xs truncate w-12">@{account.username}</span>
             </button>
           ))}
         </div>

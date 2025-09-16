@@ -32,16 +32,33 @@ model ApiKey {
 }
 
 model Media {
-  id        String    @id @default(cuid())
+  id        String      @id @default(cuid())
   type      MediaType
+  format    MediaFormat
   size      BigInt
-  url       String
-  name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  url       String //Url to access the image from the s3.
+  name      String //Name to display to USER not a UNIQUE NAME used in the storage bucket 
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  Post      Post[]    @relation("MediaToPost")
+  user      User        @relation(fields: [userId], references: [id])
+  Post      Post[]      @relation("MediaToPost")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum MediaFormat {
+  // image formats 
+  JPEG
+  PNG
+
+  // Video
+  MP4
+  MOV
+  MKV
 }
 
 model SocialAccount {
@@ -70,7 +87,7 @@ model LinkedInAccount {
   // Creds or details needed for the posting 
   accessToken     String
   refreshToken    String?
-  uuid            String
+  uuid            String // uuid refers to linkedin uuid 
   lastRefreshedAt DateTime
 
   socialAccountId String @unique
@@ -112,11 +129,6 @@ model Post {
   user          User            @relation(fields: [userId], references: [id])
   media         Media[]         @relation("MediaToPost")
   socialAccount SocialAccount[] @relation("PostToSocialAccount")
-}
-
-enum MediaType {
-  IMAGE
-  VIDEO
 }
 
 enum SocialAccountType {
