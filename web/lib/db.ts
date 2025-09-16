@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import Redis from "iovalkey";
+// import Redis from "iovalkey";
 
-export const redis = new Redis(process.env.VALKEY_URL!, {
-  tls: process.env.VALKEY_TLS === "true" ? {} : undefined, // needed for managed TLS endpoints
-  maxRetriesPerRequest: null, // common with ioredis/iovalkey in serverless
-});
+// export const redis = new Redis(process.env.VALKEY_URL!, {
+//   tls: process.env.VALKEY_TLS === "true" ? {} : undefined, // needed for managed TLS endpoints
+//   maxRetriesPerRequest: null, // common with ioredis/iovalkey in serverless
+// });
 
 const globalForPrisma = global as unknown as { db: PrismaClient };
 

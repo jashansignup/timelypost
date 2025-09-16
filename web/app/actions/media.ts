@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { ServerActionResponse } from "../types/server-action-response";
-import { db, redis } from "@/lib/db";
+import { db, } from "@/lib/db";
 import { Media } from "@prisma/client";
 import { getMediaTypeAndFormatFromRaw } from "@/lib/media-helper";
 
@@ -20,9 +20,14 @@ export const addMediaToUser = async ({
     };
   }
 
-  const mediaDetialsString = await redis.get(mediaId);
+  // const mediaDetialsString = await redis.get(mediaId);
+  const media = await db.s3PreSignedUrl.findUnique({
+    where: {
+      uuid: mediaId,
+    },
+  });
 
-  if (!mediaDetialsString) {
+  if (!media) {
     return {
       ok: false,
       error: "Media not found",
@@ -30,10 +35,9 @@ export const addMediaToUser = async ({
     };
   }
 
-  const mediaJson = JSON.parse(mediaDetialsString);
 
   const mediaTypeAndFormat = getMediaTypeAndFormatFromRaw(
-    mediaJson.contentType
+    media.contentType
   );
   if (!mediaTypeAndFormat) {
     return {
@@ -45,11 +49,11 @@ export const addMediaToUser = async ({
 
   await db.media.create({
     data: {
-      url: mediaJson.publicUrl as string,
+      url: media.publicUrl as string,
       type: mediaTypeAndFormat.type,
       format: mediaTypeAndFormat.format,
-      size: mediaJson.size as number,
-      name: mediaJson.name as string,
+      size: media.size as unknown as number,
+      name: media.name as string,
       userId: session.user.id as string,
     },
   });

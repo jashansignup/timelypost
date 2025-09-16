@@ -136,3 +136,19 @@ enum SocialAccountType {
   X
   LINKEDIN
 }
+
+model S3PreSignedUrl {
+  id          String @id @default(uuid())
+  uuid        String @unique
+  signedUrl   String
+  name        String
+  pathKey     String
+  contentType String
+  publicUrl   String
+  type        String
+  size        BigInt
+
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
