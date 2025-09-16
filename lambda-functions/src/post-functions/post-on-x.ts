@@ -1,17 +1,26 @@
 import type { SocialAccount, Post, Media } from "@prisma/client";
 import { TwitterApi } from "twitter-api-v2";
 import axios from "axios";
+import { db } from "../db";
 
 export const postOnX = async (
   account: SocialAccount,
   post: Post & { media: Media[] },
   safeText: string
 ) => {
+  const xAccount = await db.xAccount.findUnique({
+    where: {
+      socialAccountId: account.id,
+    },
+  });
+  if (!xAccount) {
+    throw new Error("X Account not found");
+  }
   const client = new TwitterApi({
     appKey: process.env.X_API_KEY!,
     appSecret: process.env.X_API_SECRET!,
-    accessToken: account.accessToken,
-    accessSecret: account.accessSecret,
+    accessToken: xAccount.accessToken,
+    accessSecret: xAccount.accessSecretToken,
   });
   let mediaIds: string[] = [];
   if (post.media) {

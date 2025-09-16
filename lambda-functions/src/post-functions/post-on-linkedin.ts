@@ -1,5 +1,6 @@
 import { Media, Post, SocialAccount } from "@prisma/client";
-import axios from "axios";
+import axios, { Axios } from "axios";
+import { db } from "../db";
 
 export const postOnLinkedIn = async (
   account: SocialAccount,
@@ -10,16 +11,21 @@ export const postOnLinkedIn = async (
     mediaAsset: unknown;
     type: "STILLIMAGE" | "VIDEO";
   }[] = [];
+  const linkedInAccount = await db.linkedInAccount.findUnique({
+    where: {
+      socialAccountId: account.id,
+    },
+  });
+  if (!linkedInAccount) {
+    throw new Error("Linkedin Account not found");
+  }
   for (const media of post.media) {
-    // const buffer = await axios.get(media.url, {
-    //   responseType: "arraybuffer",
-    // });
     const uploadUrlResponse = await axios.post(
       "https://api.linkedin.com/v2/assets?action=registerUpload",
       {
         registerUploadRequest: {
           recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
-          owner: "urn:li:person:3cy58eFgxe", // or org URN if posting as a company
+          owner: `urn:li:person:${linkedInAccount.uuid}`, // or org URN if posting as a company
           serviceRelationships: [
             {
               relationshipType: "OWNER",
@@ -30,7 +36,7 @@ export const postOnLinkedIn = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${account.accessToken}`,
+          Authorization: `Bearer ${linkedInAccount.accessToken}`,
           "LinkedIn-Version": "202508",
         },
       }
@@ -58,33 +64,61 @@ export const postOnLinkedIn = async (
       });
     }
   }
-  await axios.post(
-    "https://api.linkedin.com/v2/ugcPosts",
-    {
-      lifecycleState: "PUBLISHED",
-      visibility: {
-        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-      },
-      specificContent: {
-        "com.linkedin.ugc.ShareContent": {
-          shareCommentary: {
-            text: "Test reshare text",
-          },
-          shareMediaCategory: "IMAGE",
-          media: mediaArray.map((media) => ({
-            status: "READY",
-            media: media.mediaAsset,
-          })),
-          shareCategorization: {},
+  if (mediaArray.length > 1) {
+    await axios.post(
+      "https://api.linkedin.com/v2/ugcPosts",
+      {
+        lifecycleState: "PUBLISHED",
+        visibility: {
+          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
         },
+        specificContent: {
+          "com.linkedin.ugc.ShareContent": {
+            shareCommentary: {
+              text: safeText,
+            },
+            shareMediaCategory: "IMAGE",
+            media: mediaArray.map((media) => ({
+              status: "READY",
+              media: media.mediaAsset,
+            })),
+            shareCategorization: {},
+          },
+        },
+        author: `urn:li:person:${linkedInAccount.uuid}`,
       },
-      author: `urn:li:person:3cy58eFgxe`,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${account.accessToken}`,
-        "LinkedIn-Version": "202508",
+      {
+        headers: {
+          Authorization: `Bearer ${linkedInAccount.accessToken}`,
+          "LinkedIn-Version": "202508",
+        },
+      }
+    );
+  } else {
+    await axios.post(
+      "https://api.linkedin.com/v2/ugcPosts",
+      {
+        lifecycleState: "PUBLISHED",
+        visibility: {
+          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+        },
+        specificContent: {
+          "com.linkedin.ugc.ShareContent": {
+            shareCommentary: {
+              text: safeText,
+            },
+            shareMediaCategory: "NONE",
+            shareCategorization: {},
+          },
+        },
+        author: `urn:li:person:${linkedInAccount.uuid}`,
       },
-    }
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${linkedInAccount.accessToken}`,
+          "LinkedIn-Version": "202508",
+        },
+      }
+    );
+  }
 };
