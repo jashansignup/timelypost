@@ -1,7 +1,7 @@
 import { Media, Post, SocialAccount } from "@prisma/client";
 import axios from "axios";
 import { db } from "../db";
-
+import { htmlToText } from "html-to-text";
 export const postOnLinkedIn = async (
   account: SocialAccount,
   post: Post & { media: Media[] },
@@ -14,6 +14,7 @@ export const postOnLinkedIn = async (
   if (!linkedInAccount) {
     throw new Error("LinkedIn account not found");
   }
+  const text= htmlToText(post.text, {wordwrap:false})
 
   // Common headers for LinkedIn API calls
   const apiHeaders = {
@@ -32,7 +33,7 @@ export const postOnLinkedIn = async (
         },
         specificContent: {
           "com.linkedin.ugc.ShareContent": {
-            shareCommentary: { text: post.text },
+            shareCommentary: { text: text },
             shareMediaCategory: "NONE",
             shareCategorization: {},
           },
@@ -116,7 +117,7 @@ export const postOnLinkedIn = async (
       },
       specificContent: {
         "com.linkedin.ugc.ShareContent": {
-          shareCommentary: { text: post.text },
+          shareCommentary: { text: text },
           shareMediaCategory: "IMAGE",
           media: uploadedAssets.map((asset) => ({
             status: "READY",
