@@ -68,7 +68,7 @@ export const getPresignedUrl = async ({
     ok: true,
     data: {
       url: res.url,
-      id: res.redisStoreId,
+      id: res.uuid,
     },
   };
 };
