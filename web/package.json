@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "npx prisma generate  && next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },
@@ -13,7 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.879.0",
     "@prisma/client": "^6.16.2",
     "@radix-ui/react-slot": "^1.2.3",
-    "@upstash/qstash": "^2.8.2",
+    "@upstash/qstash": "^2.8.2",  
     "axios": "^1.11.0",
     "bullmq": "^5.58.4",
     "class-variance-authority": "^0.7.1",
