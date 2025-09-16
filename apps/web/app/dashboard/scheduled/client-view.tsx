@@ -65,8 +65,8 @@ const ClientView = ({
               No scheduled posts
             </h3>
             <p className="text-gray-500 text-center mb-4">
-              You don't have any posts scheduled yet. Create your first post to
-              get started.
+              You don&apos;t have any posts scheduled yet. Create your first
+              post to get started.
             </p>
             <Button className="bg-purple-600 hover:bg-purple-700">
               Create Post
