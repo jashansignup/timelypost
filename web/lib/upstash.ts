@@ -12,6 +12,8 @@ export async function schedulePost(postId: string, scheduledAt: Date) {
       postId,
       secret: process.env.AWS_LAMBDA_SECRET!,
     }),
-    notBefore: scheduledAt.getTime() - Date.now(),
+    // notBefore takes the timestamp and overrides the delay
+    // https://upstash.com/docs/qstash/features/delay#absolute-delay
+    notBefore: Math.floor(scheduledAt.getTime() / 1000),
   });
 }
