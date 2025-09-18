@@ -3,16 +3,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Post, SocialAccount, SocialAccountType } from "@prisma/client";
-import { Calendar, Clock, Trash2 } from "lucide-react";
+import { Media, Post, SocialAccount, SocialAccountType } from "@prisma/client";
+import { Calendar, Clock, Linkedin, Trash2 } from "lucide-react";
 import { Twitter, Instagram, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { deletePost } from "@/app/actions/post";
+import { updatePost } from "@/app/update-post";
+import { useRouter } from "next/navigation";
 
 const getIcon = (type: SocialAccountType) => {
   switch (type) {
     case "X":
       return <Twitter />;
+    case "LINKEDIN":
+      return <Linkedin />;
     case "INSTAGRAM":
       return <Instagram />;
     default:
@@ -20,11 +24,10 @@ const getIcon = (type: SocialAccountType) => {
   }
 };
 
-const ClientView = ({
-  posts,
-}: {
-  posts: (Post & { socialAccount: SocialAccount[] })[];
-}) => {
+type FullPost = Post & { socialAccount: SocialAccount[]; media: Media[] };
+
+const ClientView = ({ posts }: { posts: FullPost[] }) => {
+  const router = useRouter();
   const handleDeletePost = async (postId: string) => {
     const toastId = toast.loading("Deleting post...");
     const res = await deletePost(postId);
@@ -33,10 +36,9 @@ const ClientView = ({
       return;
     } else {
       toast.success("Post deleted successfully", { id: toastId });
+      router.refresh();
     }
   };
-
-  const handleSaveEdit = () => {};
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -46,6 +48,36 @@ const ClientView = ({
       month: "short",
       day: "numeric",
     });
+  };
+
+  const getStatusOfPost = (post: Post): "Posted" | "Failed" | "Scheduled" => {
+    if (post.posted) {
+      return "Posted";
+    } else if (post.failed) {
+      return "Failed";
+    } else if (new Date(post.scheduledAt) < new Date()) {
+      return "Failed";
+    } else {
+      return "Scheduled";
+    }
+  };
+
+  const postNow = async (post: FullPost) => {
+    const toastId = toast.loading("Posting post...");
+    const res = await updatePost({
+      id: post.id,
+      text: post.text,
+      accountIds: post.socialAccount.map((account) => account.id),
+      mediaIds: post.media.map((media) => media.id),
+      scheduledAt: new Date(new Date().getTime() + 120 * 1000), // 120 seconds from now
+      isScheduled: false,
+    });
+    if (!res.ok) {
+      toast.error(res.error, { description: res.description, id: toastId });
+      return;
+    } else {
+      toast.success("Post posted successfully", { id: toastId });
+    }
   };
 
   return (
@@ -77,7 +109,7 @@ const ClientView = ({
         <div className="space-y-4">
           {posts.map((post) => (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+              <CardContent className="">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
@@ -90,7 +122,7 @@ const ClientView = ({
                         {new Date(post.scheduledAt).toLocaleTimeString()}
                       </span>
                       <Badge variant="secondary" className="ml-2">
-                        {post.posted ? "Posted" : "Scheduled"}
+                        {getStatusOfPost(post)}
                       </Badge>
                     </div>
 
@@ -114,6 +146,17 @@ const ClientView = ({
                         ))}
                       </div>
                     </div>
+                    {getStatusOfPost(post) === "Failed" && (
+                      <div className="mt-6">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => postNow(post)}
+                        >
+                          Post Now (retry)
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 ml-4">

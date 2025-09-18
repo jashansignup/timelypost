@@ -103,7 +103,9 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
                         <div className="text-left">
                           <div className="font-medium">{platform.name}</div>
                           <div className="text-sm text-gray-500">
-                            {platform.enabled ? "Connected" : "Not Connected"}
+                            Connect your{" "}
+                            <span className="font-medium">{platform.name}</span>{" "}
+                            account
                           </div>
                         </div>
                       </Button>

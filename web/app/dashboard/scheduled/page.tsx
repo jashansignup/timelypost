@@ -16,6 +16,7 @@ export default async function page() {
     },
     include: {
       socialAccount: true,
+      media: true,
     },
   });
 
