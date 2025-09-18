@@ -79,14 +79,14 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     return combined;
   };
 
-  const handleSubmit = async (isScheduled: boolean) => {
+  const handleSubmit = async (postNow: boolean) => {
     // Client-side validation using zod
     const candidate = {
       text,
       mediaIds: selectedMedia.map((m) => m.id),
       accountIds: selectedAccounts.map((a) => a.id),
-      scheduledAt: buildScheduledAt(isScheduled),
-      isScheduled,
+      scheduledAt: buildScheduledAt(postNow),
+      postNow,
     };
 
     const parsed = createPostSchema.safeParse(candidate);
@@ -105,7 +105,7 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
         if (path && !fieldErrors[path]) fieldErrors[path] = issue.message;
       }
       // Friendly message for missing date when scheduling
-      if (isScheduled && !date && !fieldErrors.scheduledAt) {
+      if (!postNow && !date && !fieldErrors.scheduledAt) {
         fieldErrors.scheduledAt = "Please select a date and time";
       }
       setErrors(fieldErrors);
@@ -134,7 +134,11 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
             <button
               key={account.id}
               className={cn(
-                ` flex-col gap-2 flex items-center justify-center p-2 rounded-md border-2 bg-muted hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${selectedAccounts.includes(account) ? "border-primary text-primary" : ""}`
+                ` flex-col gap-2 flex items-center justify-center p-2 rounded-md border-2 bg-muted hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
+                  selectedAccounts.includes(account)
+                    ? "border-primary text-primary"
+                    : ""
+                }`
               )}
               onClick={() => {
                 setSelectedAccounts((prev) => {
@@ -263,8 +267,8 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
               </p>
             )}
 
-            <Button onClick={() => handleSubmit(true)}>Schedule</Button>
-            <Button variant={"outline"} onClick={() => handleSubmit(false)}>
+            <Button onClick={() => handleSubmit(false)}>Schedule</Button>
+            <Button variant={"outline"} onClick={() => handleSubmit(true)}>
               Post Now
             </Button>
           </div>

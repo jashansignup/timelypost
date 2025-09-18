@@ -3,12 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { schedulePost } from "@/lib/upstash";
-import { createPostSchema } from "@/zod-schemas/create-post-schema";
-import * as z from "zod";
-
-const idSchema = z.object({
-  id: z.string(),
-});
+import { updatePostSchema } from "@/zod-schemas/create-post-schema";
 
 export const updatePost = async (data: unknown) => {
   const session = await auth();
@@ -19,8 +14,7 @@ export const updatePost = async (data: unknown) => {
       description: "You are not authorized to perform this action",
     };
   }
-  const schema = idSchema.merge(createPostSchema);
-  const parsedResponse = schema.safeParse(data);
+  const parsedResponse = updatePostSchema.safeParse(data);
   if (!parsedResponse.success) {
     if (parsedResponse.error.errors[0].code === "custom") {
       return {

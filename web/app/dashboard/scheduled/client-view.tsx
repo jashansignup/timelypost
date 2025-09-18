@@ -14,13 +14,13 @@ import { useRouter } from "next/navigation";
 const getIcon = (type: SocialAccountType) => {
   switch (type) {
     case "X":
-      return <Twitter />;
+      return <Twitter className="w-4 h-4" />;
     case "LINKEDIN":
-      return <Linkedin />;
+      return <Linkedin className="w-4 h-4" />;
     case "INSTAGRAM":
-      return <Instagram />;
+      return <Instagram className="w-4 h-4" />;
     default:
-      return <Plus />;
+      return <Plus className="w-4 h-4" />;
   }
 };
 
@@ -106,12 +106,12 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 grid md:grid-cols-3 gap-6">
           {posts.map((post) => (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+              <CardContent className="flex-1 grid">
+                <div className="flex items-start justify-between flex-1 flex-col">
+                  <div className="flex-1 flex flex-col w-full">
                     <div className="flex items-center gap-2 mb-3">
                       <Calendar className="h-4 w-4 text-gray-500" />
                       <span className="text-sm font-medium text-gray-900">
@@ -126,20 +126,35 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
                       </Badge>
                     </div>
 
-                    <div
-                      className="text-gray-800 mb-4 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: post.text }}
-                    ></div>
+                    <div className="space-y-4 flex-1">
+                      {post.media.map((media) => (
+                        <div key={media.id}>
+                          {/*  eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={media.url} alt={media.name} />
+                        </div>
+                      ))}
+                      {post.media.length === 0 && (
+                        <div className="w-full aspect-video bg-gray-100 rounded-md flex items-center justify-center">
+                          <span className="text-muted-foreground italic">
+                            No Media
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className="text-gray-800 mb-4 leading-relaxed text-sm "
+                        dangerouslySetInnerHTML={{ __html: post.text }}
+                      ></div>
+                    </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Posting to:</span>
+                      <span className="text-sm text-gray-600">To:</span>
                       <div className="flex items-center gap-2">
                         {post.socialAccount.map((account) => (
                           <div
                             key={account.id}
                             className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1"
                           >
-                            <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                            <span className="text-xs font-medium text-gray-700 flex items-center gap-1 flex-wrap">
                               {getIcon(account.type)}@{account.username}
                             </span>
                           </div>
@@ -159,7 +174,7 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
+                  {/* <div className="flex items-center gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -168,7 +183,7 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>

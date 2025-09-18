@@ -6,9 +6,9 @@ import { ServerActionResponse } from "../types/server-action-response";
 import { Post } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { schedulePost } from "@/lib/upstash";
-
+import z from "zod";
 export const createPost = async (
-  data: unknown
+  data: z.infer<typeof createPostSchema>
 ): Promise<ServerActionResponse<Post>> => {
   const session = await auth();
   if (!session?.user) {
@@ -56,9 +56,9 @@ export const createPost = async (
     data: {
       userId: session.user.id!,
       text: validatedData.text,
-      scheduledAt: validatedData.isScheduled
-        ? validatedData.scheduledAt
-        : new Date(),
+      scheduledAt: validatedData.postNow
+        ? new Date()
+        : validatedData.scheduledAt,
       // TODO: fix the media make sure media belongs to user
       media: {
         connect: validatedData.mediaIds.map((mediaId) => ({
