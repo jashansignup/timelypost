@@ -9,7 +9,7 @@ const baseSchema = z.object({
   }),
   // If true, post now else schedule
   postNow: z.boolean(),
-  scheduledAt: z.date(),
+  scheduledAt: z.coerce.date(),
 });
 
 export const updatePostSchema = baseSchema

@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Copy, Plus, Trash2, Key } from "lucide-react";
 import { toast } from "sonner";
 import { createApiKey } from "@/app/actions/apikey/create";
 import ApiKeyCreatedDialog from "@/components/dialogs/api-key-created-dialog";
+import { deleteApiKey } from "@/app/actions/apikey/delete";
+import { useRouter } from "next/navigation";
 
 type ApiKeyClient = {
   id: string;
@@ -28,6 +29,7 @@ type ApiKeyClient = {
 };
 
 const ClientView = ({ apiKeys }: { apiKeys: ApiKeyClient[] }) => {
+  const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [newApiName, setNewApiName] = useState("");
   const [showCreatedDialog, setShowCreatedDialog] = useState(false);
@@ -40,20 +42,17 @@ const ClientView = ({ apiKeys }: { apiKeys: ApiKeyClient[] }) => {
     const toastId = toast.loading("Creating API Key...");
 
     if (!newApiName.trim()) {
-      toast("Error", {
-        description: "Please enter a name for your API key",
+      toast.error("Please enter a name for your API key", {
         id: toastId,
       });
-      toast.dismiss(toastId);
       return;
     }
     const res = await createApiKey({ name: newApiName });
     if (!res.ok) {
-      toast("Error", {
+      toast.error("Error", {
         description: res.error,
         id: toastId,
       });
-      toast.dismiss(toastId);
       return;
     }
     setNewApiName("");
@@ -63,12 +62,24 @@ const ClientView = ({ apiKeys }: { apiKeys: ApiKeyClient[] }) => {
       setShowCreatedDialog(true);
     }
     toast.dismiss(toastId);
+    router.refresh();
   };
 
-  const handleDeleteApi = (id: string) => {
-    toast("Coming Soon", {
-      description: "This feature is under construction",
+  const handleDeleteApi = async (id: string) => {
+    const toastId = toast.loading("Deleting API Key...");
+    const res = await deleteApiKey({ id });
+    if (!res.ok) {
+      toast.error("Error", {
+        description: res.error,
+        id: toastId,
+      });
+      return;
+    }
+    toast.success("Done", {
+      description: "API Key deleted successfully",
+      id: toastId,
     });
+    router.refresh();
   };
 
   const copyToClipboard = (text: string, type: string) => {

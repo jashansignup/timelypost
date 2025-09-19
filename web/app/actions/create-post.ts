@@ -43,7 +43,21 @@ export const createPost = async (
       userId: session.user.id,
     },
   });
-
+  const validMediaIds = await db.media.findMany({
+    where: {
+      id: {
+        in: validatedData.mediaIds,
+      },
+      userId: session.user.id,
+    },
+  });
+  if (validMediaIds.length !== validatedData.mediaIds.length) {
+    return {
+      ok: false,
+      error: "Invalid Media",
+      description: "The media you provided is invalid",
+    };
+  }
   if (validAccountIds.length !== validatedData.accountIds.length) {
     return {
       ok: false,
