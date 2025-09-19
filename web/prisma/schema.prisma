@@ -100,7 +100,7 @@ model LinkedInAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 }
 
 model XAccount {
@@ -112,7 +112,7 @@ model XAccount {
 
   socialAccountId String @unique
 
-  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 
   lastRefreshedAt DateTime
   createdAt       DateTime @default(now())
