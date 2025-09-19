@@ -155,11 +155,11 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
                       <div>
                         <div className="flex items-center space-x-2">
                           <h3 className="font-medium text-foreground flex items-center gap-2">
-                            {account.type}
+                            @{account.username}
                           </h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {account.username}
+                        <p className="text-xs text-muted-foreground">
+                          ID: {account.id}
                         </p>
                       </div>
                     </div>

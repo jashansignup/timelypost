@@ -87,11 +87,11 @@ export async function POST(req: Request) {
     },
   });
   if (validMediaIds.length !== validatedData.mediaIds.length) {
-    return {
+    return Response.json({
       ok: false,
       error: "Invalid Media",
       description: "The media you provided is invalid",
-    };
+    });
   }
 
   const post = await db.post.create({

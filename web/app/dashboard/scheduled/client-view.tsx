@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Media, Post, SocialAccount, SocialAccountType } from "@prisma/client";
-import { Calendar, Clock, Linkedin, Trash2 } from "lucide-react";
+import { Calendar, Clock, Linkedin, Trash, Trash2 } from "lucide-react";
 import { Twitter, Instagram, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { deletePost } from "@/app/actions/post";
@@ -112,18 +112,26 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
               <CardContent className="flex-1 grid">
                 <div className="flex items-start justify-between flex-1 flex-col">
                   <div className="flex-1 flex flex-col w-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {new Date(post.scheduledAt).toLocaleDateString()}
-                      </span>
-                      <Clock className="h-4 w-4 text-gray-500 ml-2" />
-                      <span className="text-sm text-gray-600">
-                        {new Date(post.scheduledAt).toLocaleTimeString()}
-                      </span>
-                      <Badge variant="secondary" className="ml-2">
-                        {getStatusOfPost(post)}
-                      </Badge>
+                    <div className="flex items-center gap-2 mb-3 justify-between">
+                      <div className="flex items-center-safe gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {new Date(post.scheduledAt).toLocaleDateString()}
+                        </span>
+                        <Clock className="h-4 w-4 text-gray-500 ml-2" />
+                        <span className="text-sm text-gray-600">
+                          {new Date(post.scheduledAt).toLocaleTimeString()}
+                        </span>
+                        <Badge variant="secondary" className="ml-2">
+                          {getStatusOfPost(post)}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleDeletePost(post.id)}
+                      >
+                        <Trash className="text-red-500 hover:text-red-700" />
+                      </Button>
                     </div>
 
                     <div className="space-y-4 flex-1">
