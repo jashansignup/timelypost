@@ -107,95 +107,100 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
         </Card>
       ) : (
         <div className="space-y-4 grid md:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <Card key={post.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="flex-1 grid">
-                <div className="flex items-start justify-between flex-1 flex-col">
-                  <div className="flex-1 flex flex-col w-full">
-                    <div className="flex items-center gap-2 mb-3 justify-between">
-                      <div className="flex items-center-safe gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {new Date(post.scheduledAt).toLocaleDateString()}
-                        </span>
-                        <Clock className="h-4 w-4 text-gray-500 ml-2" />
-                        <span className="text-sm text-gray-600">
-                          {new Date(post.scheduledAt).toLocaleTimeString()}
-                        </span>
-                        <Badge variant="secondary" className="ml-2">
-                          {getStatusOfPost(post)}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleDeletePost(post.id)}
-                      >
-                        <Trash className="text-red-500 hover:text-red-700" />
-                      </Button>
-                    </div>
-
-                    <div className="space-y-4 flex-1">
-                      {post.media.map((media) => (
-                        <div key={media.id}>
-                          {/*  eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={media.url} alt={media.name} />
-                        </div>
-                      ))}
-                      {post.media.length === 0 && (
-                        <div className="w-full aspect-video bg-gray-100 rounded-md flex items-center justify-center">
-                          <span className="text-muted-foreground italic">
-                            No Media
+          {posts.map((post) => {
+            return (
+              <Card
+                key={post.id}
+                className="hover:shadow-md transition-shadow "
+              >
+                <CardContent className="flex-1 grid">
+                  <div className="flex items-start justify-between flex-1 flex-col">
+                    <div className="flex-1 flex w-full flex-col">
+                      <div className="flex items-center gap-2 mb-3 justify-between">
+                        <div className="flex items-center  gap-2 flex-wrap">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {new Date(post.scheduledAt).toLocaleDateString()}
                           </span>
+                          <Clock className="h-4 w-4 text-gray-500 ml-2" />
+                          <span className="text-sm text-gray-600">
+                            {new Date(post.scheduledAt).toLocaleTimeString()}
+                          </span>
+                          <Badge variant="secondary" className="ml-2">
+                            {getStatusOfPost(post)}
+                          </Badge>
                         </div>
-                      )}
-                      <div
-                        className="text-gray-800 mb-4 leading-relaxed text-sm "
-                        dangerouslySetInnerHTML={{ __html: post.text }}
-                      ></div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">To:</span>
-                      <div className="flex items-center gap-2">
-                        {post.socialAccount.map((account) => (
-                          <div
-                            key={account.id}
-                            className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1"
-                          >
-                            <span className="text-xs font-medium text-gray-700 flex items-center gap-1 flex-wrap">
-                              {getIcon(account.type)}@{account.username}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {getStatusOfPost(post) === "Failed" && (
-                      <div className="mt-6">
                         <Button
                           variant="outline"
-                          size="sm"
-                          onClick={() => postNow(post)}
+                          onClick={() => handleDeletePost(post.id)}
                         >
-                          Post Now (retry)
+                          <Trash className="text-red-500 hover:text-red-700" />
                         </Button>
                       </div>
-                    )}
-                  </div>
 
-                  {/* <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePost(post.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div> */}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      <div className="space-y-4 flex-1">
+                        {post.media.map((media) => (
+                          <div key={media.id}>
+                            {/*  eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={media.url} alt={media.name} />
+                          </div>
+                        ))}
+                        {post.media.length === 0 && (
+                          <div className="w-full aspect-video bg-gray-100 rounded-md flex items-center justify-center">
+                            <span className="text-muted-foreground italic">
+                              No Media
+                            </span>
+                          </div>
+                        )}
+                        <div
+                          className="text-gray-800 mb-4 leading-relaxed text-sm"
+                          dangerouslySetInnerHTML={{ __html: post.text }}
+                        ></div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">To:</span>
+                        <div className="flex items-center gap-2">
+                          {post.socialAccount.map((account) => (
+                            <div
+                              key={account.id}
+                              className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1"
+                            >
+                              <span className="text-xs font-medium text-gray-700 flex items-center gap-1 flex-wrap">
+                                {getIcon(account.type)}@{account.username}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {getStatusOfPost(post) === "Failed" && (
+                        <div className="mt-6">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => postNow(post)}
+                          >
+                            Post Now (retry)
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* <div className="flex items-center gap-2 ml-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDeletePost(post.id)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div> */}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

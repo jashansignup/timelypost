@@ -69,8 +69,8 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
     scheduledAt?: string;
   }>({});
 
-  const buildScheduledAt = (isScheduled: boolean) => {
-    if (!isScheduled) return new Date(new Date().getTime() + 120 * 1000);
+  const buildScheduledAt = (postNow: boolean) => {
+    if (postNow) return new Date(new Date().getTime() + 120 * 1000);
     if (!date) return undefined as unknown as Date; // will trigger zod required error
     // combine date and time (HH:MM or HH:MM:SS)
     const [hh = "00", mm = "00", ss = "00"] = time.split(":");
