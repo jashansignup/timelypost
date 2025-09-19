@@ -55,7 +55,9 @@ export const updatePost = async (data: unknown) => {
     },
     data: {
       text: validatedData.text,
-      scheduledAt: validatedData.scheduledAt,
+      scheduledAt: validatedData.postNow
+        ? new Date()
+        : validatedData.scheduledAt,
       posted: false,
       socialAccount: {
         connect: validatedData.accountIds.map((accountId) => ({
@@ -64,7 +66,7 @@ export const updatePost = async (data: unknown) => {
       },
     },
   });
-  await schedulePost(post.id, validatedData.scheduledAt);
+  await schedulePost(post.id, post.scheduledAt);
 
   return {
     ok: true,

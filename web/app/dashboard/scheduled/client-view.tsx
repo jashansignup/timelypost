@@ -70,7 +70,7 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
       accountIds: post.socialAccount.map((account) => account.id),
       mediaIds: post.media.map((media) => media.id),
       scheduledAt: new Date(new Date().getTime() + 120 * 1000), // 120 seconds from now
-      isScheduled: false,
+      postNow: true,
     });
     if (!res.ok) {
       toast.error(res.error, { description: res.description, id: toastId });
