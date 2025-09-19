@@ -11,6 +11,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
+import { Menu, X } from "lucide-react";
 
 import { signOut, useSession } from "next-auth/react";
 
@@ -28,7 +30,7 @@ const DashboardSidebar = () => {
   return (
     <>
       {/* Mobile menu button */}
-      {/* <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
           size="sm"
@@ -40,7 +42,7 @@ const DashboardSidebar = () => {
             <Menu className="h-4 w-4" />
           )}
         </Button>
-    </div> */}
+      </div>
 
       {/* Sidebar */}
       <div
