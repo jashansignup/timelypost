@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, ImageIcon, Play } from "lucide-react";
 import { listMyMedia } from "@/app/actions/media";
 import type { Media } from "@prisma/client";
+import UploadMediaDialog from "@/components/dialogs/upload-media-dialog";
 
 type SelectMediaDialogProps = {
   onSelectMedia: (media: Media[]) => void;
@@ -29,6 +30,12 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState<Media[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const refreshMedia = async () => {
+    setLoading(true);
+    const res = await listMyMedia();
+    if (res.ok && res.data) setMedia(res.data);
+    setLoading(false);
+  };
   useEffect(() => {
     if (!open) return;
     let active = true;
@@ -69,7 +76,9 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Select Media</DialogTitle>
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle>Select Media</DialogTitle>
+          </div>
         </DialogHeader>
         <div className="min-h-[240px]">
           {loading ? (
@@ -78,7 +87,7 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
             </div>
           ) : media.length === 0 ? (
             <div className="py-16 text-center text-sm text-muted-foreground">
-              No media found. Upload media in Media Library.
+              No media found. Upload media using Upload New.
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -130,6 +139,24 @@ const SelectMediaDialog: React.FC<SelectMediaDialogProps> = ({
           )}
         </div>
         <DialogFooter>
+          <UploadMediaDialog
+            trigger={
+              <Button size="sm" variant="secondary" className="gap-2">
+                Upload New
+              </Button>
+            }
+            onUploaded={async (ids) => {
+              await refreshMedia();
+              if (ids && ids.length > 0) {
+                setSelectedIds((prev) => {
+                  const next = new Set(prev);
+                  if (!multiple) next.clear();
+                  ids.forEach((i) => next.add(i));
+                  return next;
+                });
+              }
+            }}
+          />
           <Button
             onClick={confirm}
             disabled={selectedIds.size === 0}

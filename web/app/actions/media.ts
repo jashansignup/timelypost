@@ -2,9 +2,10 @@
 
 import { auth } from "@/lib/auth";
 import { ServerActionResponse } from "../types/server-action-response";
-import { db, } from "@/lib/db";
+import { db } from "@/lib/db";
 import { Media } from "@prisma/client";
 import { getMediaTypeAndFormatFromRaw } from "@/lib/media-helper";
+import { deleteFromS3 } from "@/lib/s3-config";
 
 export const addMediaToUser = async ({
   mediaId,
@@ -35,10 +36,7 @@ export const addMediaToUser = async ({
     };
   }
 
-
-  const mediaTypeAndFormat = getMediaTypeAndFormatFromRaw(
-    media.contentType
-  );
+  const mediaTypeAndFormat = getMediaTypeAndFormatFromRaw(media.contentType);
   if (!mediaTypeAndFormat) {
     return {
       ok: false,
@@ -84,5 +82,33 @@ export const listMyMedia = async (): Promise<ServerActionResponse<Media[]>> => {
   return {
     ok: true,
     data: mediaItems as unknown as Media[],
+  };
+};
+
+export const deleteMedia = async ({
+  mediaId,
+}: {
+  mediaId: string;
+}): Promise<ServerActionResponse<{ id: string }>> => {
+  const session = await auth();
+  if (!session?.user) {
+    return {
+      ok: false,
+      error: "Unauthorized",
+      description: "You are not authorized to perform this action",
+    };
+  }
+
+  const media = await db.media.delete({
+    where: { id: mediaId, userId: session.user.id },
+  });
+
+  await deleteFromS3(media.url);
+
+  return {
+    ok: true,
+    data: {
+      id: mediaId,
+    },
   };
 };

@@ -19,7 +19,8 @@ import { Upload, Trash2, Play, ImageIcon, Video, Check } from "lucide-react";
 import { Media } from "@prisma/client";
 import { getPresignedUrl } from "@/app/actions/get-presigned-url";
 import { Progress } from "@/components/ui/progress";
-import { addMediaToUser } from "@/app/actions/media";
+import { addMediaToUser, deleteMedia } from "@/app/actions/media";
+import { toast } from "sonner";
 
 const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
   const router = useRouter();
@@ -111,7 +112,16 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
       setSelectedFiles([]);
     }
   };
-  const handleDelete = (id: string) => {};
+  const handleDelete = async (id: string) => {
+    const toastId = toast.loading("Deleting...");
+    const res = await deleteMedia({ mediaId: id });
+    if (!res.ok) {
+      toast.error("Failed to delete media", { id: toastId });
+      return;
+    }
+    toast.success("Media deleted successfully", { id: toastId });
+    router.refresh();
+  };
 
   return (
     <div className="container ">
