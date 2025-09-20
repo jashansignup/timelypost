@@ -6,8 +6,8 @@ import bcrypt from "bcrypt";
 export async function POST(req: Request) {
   const body = await req.json();
   const headers = req.headers;
-  const ApiKey = headers.get("x-api-key");
-  const ApiSecret = headers.get("x-api-secret");
+  const ApiKey = headers.get("X-Api-Key");
+  const ApiSecret = headers.get("X-Api-Secret");
   if (!ApiKey || !ApiSecret) {
     return Response.json({
       error: "Unauthorized",

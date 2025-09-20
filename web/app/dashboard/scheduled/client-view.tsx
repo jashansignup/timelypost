@@ -40,16 +40,6 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const postNow = async (post: FullPost) => {
     const toastId = toast.loading("Posting post...");
     const res = await updatePost({

@@ -17,6 +17,7 @@ import { createApiKey } from "@/app/actions/apikey/create";
 import ApiKeyCreatedDialog from "@/components/dialogs/api-key-created-dialog";
 import { deleteApiKey } from "@/app/actions/apikey/delete";
 import { useRouter } from "next/navigation";
+import { BASE_URL } from "@/lib/constants";
 
 type ApiKeyClient = {
   id: string;
@@ -218,6 +219,25 @@ const ClientView = ({ apiKeys }: { apiKeys: ApiKeyClient[] }) => {
                     </Button>
                   </div>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    API Secret
+                  </Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      value="You already know this 😉"
+                      readOnly
+                      className="font-mono text-sm bg-gray-50"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(api.key, "API Key")}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))
@@ -240,15 +260,15 @@ const ClientView = ({ apiKeys }: { apiKeys: ApiKeyClient[] }) => {
                 Include your API key and secret in the request headers:
               </p>
               <div className="bg-gray-100 rounded-lg p-3 font-mono text-sm">
-                <div>Authorization: Bearer YOUR_API_KEY</div>
-                <div>X-API-Secret: YOUR_API_SECRET</div>
+                <div>X-Api-Key: YOUR_API_KEY</div>
+                <div>X-Api-Secret: YOUR_API_SECRET</div>
               </div>
             </div>
 
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Base URL</h4>
               <div className="bg-gray-100 rounded-lg p-3 font-mono text-sm">
-                https://api.timelypost.com/v1
+                {BASE_URL}/api/v1/posts
               </div>
             </div>
           </div>

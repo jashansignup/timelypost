@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/popover";
 import { Media, SocialAccount, SocialAccountType } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { createPost } from "../actions/create-post";
 import { toast } from "sonner";
@@ -131,30 +136,40 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
       <div className="mt-6 md:w-[48rem] ">
         <div className="mb-1 flex items-center gap-2 flex-wrap">
           {accounts.map((account) => (
-            <button
-              key={account.id}
-              className={cn(
-                ` flex-col gap-2 flex items-center justify-center p-2 rounded-md border-2 bg-muted hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
-                  selectedAccounts.includes(account)
-                    ? "border-primary text-primary"
-                    : ""
-                }`
-              )}
-              onClick={() => {
-                setSelectedAccounts((prev) => {
-                  if (prev.includes(account)) {
-                    return prev.filter((a) => a.id !== account.id);
-                  } else {
-                    return [...prev, account];
-                  }
-                });
-                if (errors.accountIds)
-                  setErrors((e) => ({ ...e, accountIds: undefined }));
-              }}
-            >
-              {getIcon(account.type)}
-              <span className="text-xs truncate w-12">@{account.username}</span>
-            </button>
+            <Tooltip key={account.id}>
+              <TooltipTrigger>
+                <button
+                  className={cn(
+                    ` flex-col gap-2 flex items-center justify-center p-2 rounded-md border-2 bg-muted hover:bg-accent hover:text-accent-foreground transition-colors duration-200 ${
+                      selectedAccounts.includes(account)
+                        ? "border-primary text-primary"
+                        : ""
+                    }`
+                  )}
+                  onClick={() => {
+                    setSelectedAccounts((prev) => {
+                      if (prev.includes(account)) {
+                        return prev.filter((a) => a.id !== account.id);
+                      } else {
+                        return [...prev, account];
+                      }
+                    });
+                    if (errors.accountIds)
+                      setErrors((e) => ({ ...e, accountIds: undefined }));
+                  }}
+                >
+                  {getIcon(account.type)}
+                  <span className="text-xs truncate w-12">
+                    @{account.username}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  @{account.username} on {account.type}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
         {errors.accountIds && (
