@@ -50,18 +50,6 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
     });
   };
 
-  const getStatusOfPost = (post: Post): "Posted" | "Failed" | "Scheduled" => {
-    if (post.posted) {
-      return "Posted";
-    } else if (post.failed) {
-      return "Failed";
-    } else if (new Date(post.scheduledAt) < new Date()) {
-      return "Failed";
-    } else {
-      return "Scheduled";
-    }
-  };
-
   const postNow = async (post: FullPost) => {
     const toastId = toast.loading("Posting post...");
     const res = await updatePost({
@@ -127,7 +115,7 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
                             {new Date(post.scheduledAt).toLocaleTimeString()}
                           </span>
                           <Badge variant="secondary" className="ml-2">
-                            {getStatusOfPost(post)}
+                            {post.status}
                           </Badge>
                         </div>
                         <Button
@@ -173,7 +161,7 @@ const ClientView = ({ posts }: { posts: FullPost[] }) => {
                           ))}
                         </div>
                       </div>
-                      {getStatusOfPost(post) === "Failed" && (
+                      {post.status === "FAILED" && (
                         <div className="mt-6">
                           <Button
                             variant="outline"

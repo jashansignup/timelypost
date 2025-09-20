@@ -87,8 +87,15 @@ export const createPost = async (
     },
   });
 
-  await schedulePost(post.id, validatedData.scheduledAt);
-
+  const messageId = await schedulePost(post.id, post.createdAt);
+  await db.post.update({
+    where: {
+      id: post.id,
+    },
+    data: {
+      scheduleId: messageId,
+    },
+  });
   return {
     ok: true,
     data: post,

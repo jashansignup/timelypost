@@ -125,15 +125,21 @@ model Post {
   userId        String
   scheduledAt   DateTime        @default(now())
   postedAt      DateTime        @default(now())
-  posted        Boolean         @default(false)
+  status        PostStatus      @default(SCHEDULED)
   draft         Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   error         String?
-  failed        Boolean         @default(false)
   user          User            @relation(fields: [userId], references: [id])
   media         Media[]         @relation("MediaToPost")
   socialAccount SocialAccount[] @relation("PostToSocialAccount")
+  scheduleId    String?
+}
+
+enum PostStatus {
+  SCHEDULED
+  POSTED
+  FAILED
 }
 
 enum SocialAccountType {

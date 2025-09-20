@@ -48,6 +48,10 @@ export const updatePost = async (data: unknown) => {
       description: "The account you provided is invalid",
     };
   }
+  const messageId = await schedulePost(
+    validatedData.id,
+    validatedData.postNow ? new Date() : validatedData.scheduledAt
+  );
 
   const post = await db.post.update({
     where: {
@@ -58,15 +62,15 @@ export const updatePost = async (data: unknown) => {
       scheduledAt: validatedData.postNow
         ? new Date()
         : validatedData.scheduledAt,
-      posted: false,
+      status: "SCHEDULED",
       socialAccount: {
         connect: validatedData.accountIds.map((accountId) => ({
           id: accountId,
         })),
       },
+      scheduleId: messageId,
     },
   });
-  await schedulePost(post.id, post.scheduledAt);
 
   return {
     ok: true,

@@ -23,24 +23,22 @@ export const postOnX = async (
     accessSecret: xAccount.accessSecretToken,
   });
   let mediaIds: string[] = [];
-  if (post.media) {
-    for (const media of post.media) {
-      const response = await axios.get(media.url, {
-        responseType: "arraybuffer",
-      });
-      const mediaId = await client.v1.uploadMedia(response.data, {
-        mimeType: media.type,
-      });
-      mediaIds.push(mediaId);
-    }
-    await client.v2.tweet(safeText, {
-      ...(mediaIds.length > 0
-        ? {
-            media: {
-              media_ids: mediaIds as [string],
-            },
-          }
-        : {}),
+  for (const media of post.media) {
+    const response = await axios.get(media.url, {
+      responseType: "arraybuffer",
     });
+    const mediaId = await client.v1.uploadMedia(response.data, {
+      mimeType: media.type,
+    });
+    mediaIds.push(mediaId);
   }
+  await client.v2.tweet(safeText, {
+    ...(mediaIds.length > 0
+      ? {
+          media: {
+            media_ids: mediaIds as [string],
+          },
+        }
+      : {}),
+  });
 };

@@ -65,7 +65,7 @@ export async function handler(event: any): Promise<{
         id: postId,
       },
       data: {
-        posted: true,
+        status: "POSTED",
         postedAt: new Date(),
       },
     });
@@ -82,7 +82,7 @@ export async function handler(event: any): Promise<{
         id: body.postId,
       },
       data: {
-        failed: true,
+        status: "FAILED",
         error: error.toString(),
       },
     });
