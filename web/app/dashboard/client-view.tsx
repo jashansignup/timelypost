@@ -184,12 +184,13 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
             ))}
           </div>
         )}
-        <div className="h-[130px] relative">
+        <div className="h-[330px] relative">
           <ReactQuill
             theme="snow"
-            style={{ height: "100px" }}
+            style={{ height: "300px" }}
             className="max-w-full md:w-[48rem]"
             modules={{ toolbar: [["bold", "italic", "underline"]] }}
+            formats={["bold", "italic", "underline"]}
             onChange={(value) => {
               setText(value);
               if (errors.text) setErrors((e) => ({ ...e, text: undefined }));
