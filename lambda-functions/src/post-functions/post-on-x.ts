@@ -1,7 +1,18 @@
-import type { SocialAccount, Post, Media } from "@prisma/client";
-import { TwitterApi } from "twitter-api-v2";
+import type { SocialAccount, Post, Media, MediaFormat } from "@prisma/client";
+import { TwitterApi, EUploadMimeType } from "twitter-api-v2";
 import axios from "axios";
 import { db } from "../db";
+
+function getMimeTypeFromFormat(format: MediaFormat): EUploadMimeType {
+  const formatMap: Record<MediaFormat, EUploadMimeType> = {
+    JPEG: EUploadMimeType.Jpeg,
+    PNG: EUploadMimeType.Png,
+    MP4: EUploadMimeType.Mp4,
+    MOV: EUploadMimeType.Mp4,
+    MKV: EUploadMimeType.Mp4,
+  };
+  return formatMap[format] || EUploadMimeType.Jpeg;
+}
 
 export const postOnX = async (
   account: SocialAccount,
@@ -22,16 +33,23 @@ export const postOnX = async (
     accessToken: xAccount.accessToken,
     accessSecret: xAccount.accessSecretToken,
   });
-  let mediaIds: string[] = [];
+
+  const mediaIds: string[] = [];
   for (const media of post.media) {
     const response = await axios.get(media.url, {
       responseType: "arraybuffer",
     });
-    const mediaId = await client.v1.uploadMedia(response.data, {
-      mimeType: media.type,
+
+    const mimeType = getMimeTypeFromFormat(media.format);
+    const isVideo = media.type === "VIDEO";
+
+    const mediaId = await client.v1.uploadMedia(Buffer.from(response.data), {
+      mimeType: mimeType,
+      type: isVideo ? "longvideo" : undefined,
     });
     mediaIds.push(mediaId);
   }
+
   await client.v2.tweet(safeText, {
     ...(mediaIds.length > 0
       ? {

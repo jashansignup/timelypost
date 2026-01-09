@@ -10,6 +10,7 @@ import {
   Plus,
   Twitter,
   X,
+  Play,
 } from "lucide-react";
 
 import { ChevronDownIcon } from "lucide-react";
@@ -179,12 +180,24 @@ const ClientView = ({ accounts }: { accounts: SocialAccount[] }) => {
           <div className="flex gap-2 flex-wrap my-3">
             {selectedMedia.map((media) => (
               <div key={media.id} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={media.url}
-                  alt="selected"
-                  className="w-24 h-24 object-contain rounded border"
-                />
+                {media.type === "VIDEO" ? (
+                  <div className="w-24 h-24 rounded border bg-gray-900 flex items-center justify-center relative">
+                    <video
+                      src={media.url}
+                      className="w-full h-full object-contain rounded"
+                      muted
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded">
+                      <Play className="w-8 h-8 text-white" fill="white" />
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={media.url}
+                    alt="selected"
+                    className="w-24 h-24 object-contain rounded border"
+                  />
+                )}
                 <button
                   className="absolute top-[-10px] right-[-10px] bg-red-500 text-white p-1 rounded-full"
                   onClick={() =>

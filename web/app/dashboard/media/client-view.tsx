@@ -282,11 +282,24 @@ const ClientView = ({ mediaItems }: { mediaItems: Media[] }) => {
               >
                 <CardContent className="p-0">
                   <div className="relative">
-                    <img
-                      src={item.url}
-                      alt={item.url}
-                      className="w-full h-48 object-contain rounded-t-lg"
-                    />
+                    {item.type === "VIDEO" ? (
+                      <div className="w-full h-48 bg-gray-900 rounded-t-lg relative">
+                        <video
+                          src={item.url}
+                          className="w-full h-full object-contain rounded-t-lg"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-t-lg">
+                          <Play className="w-12 h-12 text-white" fill="white" />
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.url}
+                        className="w-full h-48 object-contain rounded-t-lg"
+                      />
+                    )}
 
                     {/* Media Type Indicator */}
                     <div className="absolute top-2 left-2">
