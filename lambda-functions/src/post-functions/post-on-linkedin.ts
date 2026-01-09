@@ -2,27 +2,30 @@ import { Media, Post, SocialAccount } from "@prisma/client";
 import axios from "axios";
 import { db } from "../db";
 import { htmlToText } from "html-to-text";
+
+const LINKEDIN_API_VERSION = "202508";
+
 export const postOnLinkedIn = async (
   account: SocialAccount,
   post: Post & { media: Media[] },
   safeText: string
 ) => {
-  // Fetch LinkedIn account details for the given social account
   const linkedInAccount = await db.linkedInAccount.findUnique({
     where: { socialAccountId: account.id },
   });
   if (!linkedInAccount) {
     throw new Error("LinkedIn account not found");
   }
-  const text= htmlToText(post.text, {wordwrap:false})
+  const text = htmlToText(post.text, { wordwrap: false });
 
-  // Common headers for LinkedIn API calls
   const apiHeaders = {
     Authorization: `Bearer ${linkedInAccount.accessToken}`,
-    "LinkedIn-Version": "202508",
+    "LinkedIn-Version": LINKEDIN_API_VERSION,
+    "X-Restli-Protocol-Version": "2.0.0",
   } as const;
 
-  // Helper: publish a text-only post
+  const ownerUrn = `urn:li:person:${linkedInAccount.uuid}`;
+
   const publishTextPost = async () => {
     await axios.post(
       "https://api.linkedin.com/v2/ugcPosts",
@@ -38,28 +41,39 @@ export const postOnLinkedIn = async (
             shareCategorization: {},
           },
         },
-        author: `urn:li:person:${linkedInAccount.uuid}`,
+        author: ownerUrn,
       },
       { headers: apiHeaders }
     );
   };
 
-  // Filter images only (we ignore videos for now)
   const images = (post.media || []).filter((m) => m.type === "IMAGE");
+  const videos = (post.media || []).filter((m) => m.type === "VIDEO");
 
-  // If there are no images, publish a text-only post
-  if (!images.length) {
+  if (!images.length && !videos.length) {
     return publishTextPost();
   }
 
-  // Helper: Register an image upload and return the asset URN and upload URL
+  if (videos.length > 0) {
+    const video = videos[0];
+    try {
+      await uploadAndPostVideo(video, text, ownerUrn, apiHeaders);
+      return;
+    } catch (err) {
+      console.error("LinkedIn video upload failed:", err);
+      if (!images.length) {
+        return publishTextPost();
+      }
+    }
+  }
+
   const registerImageUpload = async () => {
     const res = await axios.post(
       "https://api.linkedin.com/v2/assets?action=registerUpload",
       {
         registerUploadRequest: {
           recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
-          owner: `urn:li:person:${linkedInAccount.uuid}`,
+          owner: ownerUrn,
           serviceRelationships: [
             {
               relationshipType: "OWNER",
@@ -77,11 +91,10 @@ export const postOnLinkedIn = async (
       ];
     return {
       uploadUrl: mechanism.uploadUrl as string,
-      asset: res.data.value.asset as string, // e.g., "urn:li:digitalmediaAsset:..."
+      asset: res.data.value.asset as string,
     };
   };
 
-  // Upload all images sequentially to preserve order (can be parallelized if needed)
   const uploadedAssets: string[] = [];
   for (const img of images) {
     try {
@@ -89,25 +102,23 @@ export const postOnLinkedIn = async (
       const fileResp = await axios.get(img.url, {
         responseType: "arraybuffer",
       });
+      const contentType = getContentTypeFromFormat(img.format);
       await axios.put(uploadUrl, fileResp.data, {
         headers: {
-          "Content-Type": "image/jpeg", // Adjust if you store/know exact mime type
+          "Content-Type": contentType,
           "Content-Length": fileResp.data.length,
         },
       });
       uploadedAssets.push(asset);
     } catch (err) {
       console.error("LinkedIn image upload failed:", err);
-      // Best effort: continue with other images
     }
   }
 
-  // If no assets ended up uploaded, fallback to text-only post
   if (!uploadedAssets.length) {
     return publishTextPost();
   }
 
-  // Publish an image post (single or multiple)
   await axios.post(
     "https://api.linkedin.com/v2/ugcPosts",
     {
@@ -126,8 +137,155 @@ export const postOnLinkedIn = async (
           shareCategorization: {},
         },
       },
-      author: `urn:li:person:${linkedInAccount.uuid}`,
+      author: ownerUrn,
     },
     { headers: apiHeaders }
   );
 };
+
+function getContentTypeFromFormat(format: string): string {
+  const formatMap: Record<string, string> = {
+    JPEG: "image/jpeg",
+    PNG: "image/png",
+    MP4: "video/mp4",
+    MOV: "video/quicktime",
+    MKV: "video/x-matroska",
+  };
+  return formatMap[format] || "application/octet-stream";
+}
+
+async function uploadAndPostVideo(
+  video: Media,
+  text: string,
+  ownerUrn: string,
+  apiHeaders: Record<string, string>
+) {
+  const fileResp = await axios.get(video.url, {
+    responseType: "arraybuffer",
+  });
+  const videoData = fileResp.data as Buffer;
+  const fileSizeBytes = videoData.length;
+
+  const initResponse = await axios.post(
+    "https://api.linkedin.com/rest/videos?action=initializeUpload",
+    {
+      initializeUploadRequest: {
+        owner: ownerUrn,
+        fileSizeBytes: fileSizeBytes,
+        uploadCaptions: false,
+        uploadThumbnail: false,
+      },
+    },
+    {
+      headers: {
+        ...apiHeaders,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const { value } = initResponse.data;
+  const videoUrn = value.video as string;
+  const uploadInstructions = value.uploadInstructions as Array<{
+    uploadUrl: string;
+    firstByte: number;
+    lastByte: number;
+  }>;
+
+  const uploadedPartIds: string[] = [];
+  for (const instruction of uploadInstructions) {
+    const { uploadUrl, firstByte, lastByte } = instruction;
+    const chunk = videoData.slice(firstByte, lastByte + 1);
+
+    const uploadResponse = await axios.put(uploadUrl, chunk, {
+      headers: {
+        "Content-Type": "application/octet-stream",
+      },
+    });
+
+    const etag = uploadResponse.headers["etag"];
+    if (etag) {
+      uploadedPartIds.push(etag);
+    }
+  }
+
+  await axios.post(
+    "https://api.linkedin.com/rest/videos?action=finalizeUpload",
+    {
+      finalizeUploadRequest: {
+        video: videoUrn,
+        uploadToken: "",
+        uploadedPartIds: uploadedPartIds,
+      },
+    },
+    {
+      headers: {
+        ...apiHeaders,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  await waitForVideoProcessing(videoUrn, apiHeaders);
+
+  await axios.post(
+    "https://api.linkedin.com/v2/ugcPosts",
+    {
+      lifecycleState: "PUBLISHED",
+      visibility: {
+        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+      },
+      specificContent: {
+        "com.linkedin.ugc.ShareContent": {
+          shareCommentary: { text: text },
+          shareMediaCategory: "VIDEO",
+          media: [
+            {
+              status: "READY",
+              media: videoUrn,
+            },
+          ],
+          shareCategorization: {},
+        },
+      },
+      author: ownerUrn,
+    },
+    { headers: apiHeaders }
+  );
+}
+
+async function waitForVideoProcessing(
+  videoUrn: string,
+  apiHeaders: Record<string, string>,
+  maxAttempts: number = 30,
+  delayMs: number = 2000
+): Promise<void> {
+  const videoId = videoUrn.replace("urn:li:video:", "");
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await axios.get(
+        `https://api.linkedin.com/rest/videos/${videoId}`,
+        { headers: apiHeaders }
+      );
+
+      const status = response.data.status;
+      if (status === "AVAILABLE") {
+        return;
+      }
+      if (status === "PROCESSING_FAILED") {
+        throw new Error(
+          `Video processing failed: ${response.data.processingFailureReason || "Unknown reason"}`
+        );
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status !== 404) {
+        throw err;
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error("Video processing timed out");
+}
