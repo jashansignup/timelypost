@@ -2,6 +2,7 @@ import type { SocialAccount, Post, Media, MediaFormat } from "@prisma/client";
 import { TwitterApi, EUploadMimeType } from "twitter-api-v2";
 import axios from "axios";
 import { db } from "../db";
+import { withRetry } from "../utils/retry";
 
 function getMimeTypeFromFormat(format: MediaFormat): EUploadMimeType {
   const formatMap: Record<MediaFormat, EUploadMimeType> = {
@@ -36,27 +37,38 @@ export const postOnX = async (
 
   const mediaIds: string[] = [];
   for (const media of post.media) {
-    const response = await axios.get(media.url, {
-      responseType: "arraybuffer",
-    });
+    const mediaId = await withRetry(
+      async () => {
+        const response = await axios.get(media.url, {
+          responseType: "arraybuffer",
+          timeout: 60000,
+        });
 
-    const mimeType = getMimeTypeFromFormat(media.format);
-    const isVideo = media.type === "VIDEO";
+        const mimeType = getMimeTypeFromFormat(media.format);
+        const isVideo = media.type === "VIDEO";
 
-    const mediaId = await client.v1.uploadMedia(Buffer.from(response.data), {
-      mimeType: mimeType,
-      type: isVideo ? "longvideo" : undefined,
-    });
+        return client.v1.uploadMedia(Buffer.from(response.data), {
+          mimeType: mimeType,
+          type: isVideo ? "longvideo" : undefined,
+        });
+      },
+      { maxAttempts: 3, initialDelayMs: 2000 }
+    );
     mediaIds.push(mediaId);
   }
 
-  await client.v2.tweet(safeText, {
-    ...(mediaIds.length > 0
-      ? {
-          media: {
-            media_ids: mediaIds as [string],
-          },
-        }
-      : {}),
-  });
+  await withRetry(
+    async () => {
+      await client.v2.tweet(safeText, {
+        ...(mediaIds.length > 0
+          ? {
+              media: {
+                media_ids: mediaIds as [string],
+              },
+            }
+          : {}),
+      });
+    },
+    { maxAttempts: 3, initialDelayMs: 2000 }
+  );
 };
