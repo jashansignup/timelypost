@@ -2,6 +2,7 @@ import { Media, Post, SocialAccount } from "@prisma/client";
 import axios from "axios";
 import { db } from "../db";
 import { htmlToText } from "html-to-text";
+import { withRetry } from "../utils/retry";
 
 const LINKEDIN_API_VERSION = "202508";
 
@@ -27,23 +28,28 @@ export const postOnLinkedIn = async (
   const ownerUrn = `urn:li:person:${linkedInAccount.uuid}`;
 
   const publishTextPost = async () => {
-    await axios.post(
-      "https://api.linkedin.com/v2/ugcPosts",
-      {
-        lifecycleState: "PUBLISHED",
-        visibility: {
-          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-        },
-        specificContent: {
-          "com.linkedin.ugc.ShareContent": {
-            shareCommentary: { text: text },
-            shareMediaCategory: "NONE",
-            shareCategorization: {},
+    await withRetry(
+      async () => {
+        await axios.post(
+          "https://api.linkedin.com/v2/ugcPosts",
+          {
+            lifecycleState: "PUBLISHED",
+            visibility: {
+              "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+            },
+            specificContent: {
+              "com.linkedin.ugc.ShareContent": {
+                shareCommentary: { text: text },
+                shareMediaCategory: "NONE",
+                shareCategorization: {},
+              },
+            },
+            author: ownerUrn,
           },
-        },
-        author: ownerUrn,
+          { headers: apiHeaders, timeout: 30000 }
+        );
       },
-      { headers: apiHeaders }
+      { maxAttempts: 3, initialDelayMs: 2000 }
     );
   };
 
@@ -68,31 +74,36 @@ export const postOnLinkedIn = async (
   }
 
   const registerImageUpload = async () => {
-    const res = await axios.post(
-      "https://api.linkedin.com/v2/assets?action=registerUpload",
-      {
-        registerUploadRequest: {
-          recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
-          owner: ownerUrn,
-          serviceRelationships: [
-            {
-              relationshipType: "OWNER",
-              identifier: "urn:li:userGeneratedContent",
+    return withRetry(
+      async () => {
+        const res = await axios.post(
+          "https://api.linkedin.com/v2/assets?action=registerUpload",
+          {
+            registerUploadRequest: {
+              recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+              owner: ownerUrn,
+              serviceRelationships: [
+                {
+                  relationshipType: "OWNER",
+                  identifier: "urn:li:userGeneratedContent",
+                },
+              ],
             },
-          ],
-        },
-      },
-      { headers: apiHeaders }
-    );
+          },
+          { headers: apiHeaders, timeout: 30000 }
+        );
 
-    const mechanism =
-      res.data.value.uploadMechanism[
-        "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
-      ];
-    return {
-      uploadUrl: mechanism.uploadUrl as string,
-      asset: res.data.value.asset as string,
-    };
+        const mechanism =
+          res.data.value.uploadMechanism[
+            "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
+          ];
+        return {
+          uploadUrl: mechanism.uploadUrl as string,
+          asset: res.data.value.asset as string,
+        };
+      },
+      { maxAttempts: 3, initialDelayMs: 2000 }
+    );
   };
 
   const uploadedAssets: string[] = [];
@@ -119,27 +130,32 @@ export const postOnLinkedIn = async (
     return publishTextPost();
   }
 
-  await axios.post(
-    "https://api.linkedin.com/v2/ugcPosts",
-    {
-      lifecycleState: "PUBLISHED",
-      visibility: {
-        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-      },
-      specificContent: {
-        "com.linkedin.ugc.ShareContent": {
-          shareCommentary: { text: text },
-          shareMediaCategory: "IMAGE",
-          media: uploadedAssets.map((asset) => ({
-            status: "READY",
-            media: asset,
-          })),
-          shareCategorization: {},
+  await withRetry(
+    async () => {
+      await axios.post(
+        "https://api.linkedin.com/v2/ugcPosts",
+        {
+          lifecycleState: "PUBLISHED",
+          visibility: {
+            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+          },
+          specificContent: {
+            "com.linkedin.ugc.ShareContent": {
+              shareCommentary: { text: text },
+              shareMediaCategory: "IMAGE",
+              media: uploadedAssets.map((asset) => ({
+                status: "READY",
+                media: asset,
+              })),
+              shareCategorization: {},
+            },
+          },
+          author: ownerUrn,
         },
-      },
-      author: ownerUrn,
+        { headers: apiHeaders, timeout: 30000 }
+      );
     },
-    { headers: apiHeaders }
+    { maxAttempts: 3, initialDelayMs: 2000 }
   );
 };
 
@@ -162,26 +178,33 @@ async function uploadAndPostVideo(
 ) {
   const fileResp = await axios.get(video.url, {
     responseType: "arraybuffer",
+    timeout: 120000,
   });
   const videoData = fileResp.data as Buffer;
   const fileSizeBytes = videoData.length;
 
-  const initResponse = await axios.post(
-    "https://api.linkedin.com/rest/videos?action=initializeUpload",
-    {
-      initializeUploadRequest: {
-        owner: ownerUrn,
-        fileSizeBytes: fileSizeBytes,
-        uploadCaptions: false,
-        uploadThumbnail: false,
-      },
+  const initResponse = await withRetry(
+    async () => {
+      return axios.post(
+        "https://api.linkedin.com/rest/videos?action=initializeUpload",
+        {
+          initializeUploadRequest: {
+            owner: ownerUrn,
+            fileSizeBytes: fileSizeBytes,
+            uploadCaptions: false,
+            uploadThumbnail: false,
+          },
+        },
+        {
+          headers: {
+            ...apiHeaders,
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
     },
-    {
-      headers: {
-        ...apiHeaders,
-        "Content-Type": "application/json",
-      },
-    }
+    { maxAttempts: 3, initialDelayMs: 2000 }
   );
 
   const { value } = initResponse.data;
@@ -197,11 +220,17 @@ async function uploadAndPostVideo(
     const { uploadUrl, firstByte, lastByte } = instruction;
     const chunk = videoData.slice(firstByte, lastByte + 1);
 
-    const uploadResponse = await axios.put(uploadUrl, chunk, {
-      headers: {
-        "Content-Type": "application/octet-stream",
+    const uploadResponse = await withRetry(
+      async () => {
+        return axios.put(uploadUrl, chunk, {
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+          timeout: 120000,
+        });
       },
-    });
+      { maxAttempts: 3, initialDelayMs: 2000 }
+    );
 
     const etag = uploadResponse.headers["etag"];
     if (etag) {
@@ -209,48 +238,59 @@ async function uploadAndPostVideo(
     }
   }
 
-  await axios.post(
-    "https://api.linkedin.com/rest/videos?action=finalizeUpload",
-    {
-      finalizeUploadRequest: {
-        video: videoUrn,
-        uploadToken: "",
-        uploadedPartIds: uploadedPartIds,
-      },
+  await withRetry(
+    async () => {
+      await axios.post(
+        "https://api.linkedin.com/rest/videos?action=finalizeUpload",
+        {
+          finalizeUploadRequest: {
+            video: videoUrn,
+            uploadToken: "",
+            uploadedPartIds: uploadedPartIds,
+          },
+        },
+        {
+          headers: {
+            ...apiHeaders,
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
     },
-    {
-      headers: {
-        ...apiHeaders,
-        "Content-Type": "application/json",
-      },
-    }
+    { maxAttempts: 3, initialDelayMs: 2000 }
   );
 
   await waitForVideoProcessing(videoUrn, apiHeaders);
 
-  await axios.post(
-    "https://api.linkedin.com/v2/ugcPosts",
-    {
-      lifecycleState: "PUBLISHED",
-      visibility: {
-        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-      },
-      specificContent: {
-        "com.linkedin.ugc.ShareContent": {
-          shareCommentary: { text: text },
-          shareMediaCategory: "VIDEO",
-          media: [
-            {
-              status: "READY",
-              media: videoUrn,
+  await withRetry(
+    async () => {
+      await axios.post(
+        "https://api.linkedin.com/v2/ugcPosts",
+        {
+          lifecycleState: "PUBLISHED",
+          visibility: {
+            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+          },
+          specificContent: {
+            "com.linkedin.ugc.ShareContent": {
+              shareCommentary: { text: text },
+              shareMediaCategory: "VIDEO",
+              media: [
+                {
+                  status: "READY",
+                  media: videoUrn,
+                },
+              ],
+              shareCategorization: {},
             },
-          ],
-          shareCategorization: {},
+          },
+          author: ownerUrn,
         },
-      },
-      author: ownerUrn,
+        { headers: apiHeaders, timeout: 30000 }
+      );
     },
-    { headers: apiHeaders }
+    { maxAttempts: 3, initialDelayMs: 2000 }
   );
 }
 
